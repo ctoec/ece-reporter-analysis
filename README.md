@@ -1,6 +1,6 @@
 # ece-reporter-analysis
 
-This repository contains code to support one-off and ongoing reports off of data collected by ECE Reporter and potentially other data sources in the future. 
+This repository contains code to support one-off and ongoing reports from data collected by ECE Reporter and potentially other data sources in the future. 
 
 ## Folders
 
