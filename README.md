@@ -11,6 +11,6 @@ Code exposing
 - temp_load.sql: Use function to add a small snapshot of data to power a POC looking at the analytics tables.
 
 ## data
-Manual tables added to the database
+Static tables added manually to the database, these may be updated sporatically.
 - IncomeLevels: Income levels by family size for 75% of State Median Income and 200% of Federal Poverty Level.
 - Rates: Pre-set rates for Child Day Care slots based on various child and site characteristics. 
