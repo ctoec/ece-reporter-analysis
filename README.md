@@ -10,7 +10,7 @@ Code exposing
 - functions.sql: Custom SQL functions ranged by time period that return tables to be inserted in base analytics tables following validation.
 - temp_load.sql: Use function to add a small snapshot of data to power a POC looking at the analytics tables.
 
-## data
+### data
 Manual tables added to the database
 - IncomeLevels: Income levels by family size for 75% of State Median Income and 200% of Federal Poverty Level.
 - Rates: Pre-set rates for Child Day Care slots based on various child and site characteristics. 
