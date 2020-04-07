@@ -65,7 +65,7 @@ select
       ) as FDTemp
       on FDTemp.FamilyId = Family.Id and rn = 1
     LEFT JOIN IncomeLevels on FDTemp.NumberOfPeople = IncomeLevels.NumberOfPeople
-    WHERE F.Source = 0 and (RPCDC.PeriodStart >= @StartDate and RPCDC.PeriodEnd <= @EndDate);
+    WHERE F.Source = 0 and (RPCDC.Period >= @StartDate and RPCDC.Period <= @EndDate);
 
 
 CREATE FUNCTION CDCMonthlyOrganizationSpaceReporting(@StartDate date, @EndDate date)
@@ -100,6 +100,7 @@ SELECT
                                                  MER.TimeName = NameLookup.Time and
                                                  MER.AgeGroupName = NameLookup.AgeGroup and
                                                  MER.FundingSource = Report.Type
+    WHERE RP.Period >= @StartDate and RP.Period <= @EndDate
     GROUP BY RP.Id, Report.Id, RP.Period, RP.PeriodStart, RP.PeriodEnd, Report.Accredited, Report.Type, o.Id, o.Name, FS.Capacity, NameLookup.Time, NameLookup.AgeGroup;
 
 
@@ -123,4 +124,5 @@ SELECT
     sum(MOSR.FilledSpaces) as FilledSpaces
 FROM MonthlyOrganizationSpaceReporting MOSR
 INNER JOIN Report R on MOSR.ReportId = R.Id
+WHERE MOSR.Period >= @StartDate and MOSR.Period <= @EndDate;
 GROUP BY MOSR.ReportingPeriodId, MOSR.ReportId, MOSR.Period, MOSR.ReportingPeriodStart, MOSR.ReportingPeriodEnd, MOSR.Accredited, MOSR.OrganizationId, MOSR.OrganizationName, R.RetroactiveC4KRevenue, R.FamilyFeesRevenue, R.C4KRevenue;
