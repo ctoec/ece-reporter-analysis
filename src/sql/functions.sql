@@ -129,4 +129,3 @@ SELECT
     INNER JOIN Report R on MOSR.ReportId = R.Id
     WHERE MOSR.Period >= @StartDate and MOSR.Period <= @EndDate
     GROUP BY MOSR.ReportingPeriodId, MOSR.ReportId, MOSR.Period, MOSR.ReportingPeriodStart, MOSR.ReportingPeriodEnd, MOSR.Accredited, MOSR.OrganizationId, MOSR.OrganizationName, R.RetroactiveC4KRevenue, R.FamilyFeesRevenue, R.C4KRevenue;
-
