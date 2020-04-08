@@ -32,7 +32,10 @@ select
     Child.Foster,
     Report.Accredited,
     Rates.Rate,
+    Rates.Rate * DATEDIFF(week,RPCDC.PeriodStart, RPCDC.PeriodEnd) as Revenue,
     F.Source,
+    IncomeLevels.x75SMI,
+    IncomeLevels.x200FPL,
     CASE WHEN IncomeLevels.x75SMI < FDTemp.Income THEN 1 ELSE 0 END as Under75SMI,
     CASE WHEN IncomeLevels.x200FPL < FDTemp.Income THEN 1 ELSE 0 END as Under200FPL
     from Funding F
@@ -122,7 +125,8 @@ SELECT
     R.C4KRevenue,
     sum(MOSR.Capacity) as TotalCapacity,
     sum(MOSR.FilledSpaces) as FilledSpaces
-FROM MonthlyOrganizationSpaceReporting MOSR
-INNER JOIN Report R on MOSR.ReportId = R.Id
-WHERE MOSR.Period >= @StartDate and MOSR.Period <= @EndDate;
-GROUP BY MOSR.ReportingPeriodId, MOSR.ReportId, MOSR.Period, MOSR.ReportingPeriodStart, MOSR.ReportingPeriodEnd, MOSR.Accredited, MOSR.OrganizationId, MOSR.OrganizationName, R.RetroactiveC4KRevenue, R.FamilyFeesRevenue, R.C4KRevenue;
+    FROM MonthlyOrganizationSpaceReporting MOSR
+    INNER JOIN Report R on MOSR.ReportId = R.Id
+    WHERE MOSR.Period >= @StartDate and MOSR.Period <= @EndDate
+    GROUP BY MOSR.ReportingPeriodId, MOSR.ReportId, MOSR.Period, MOSR.ReportingPeriodStart, MOSR.ReportingPeriodEnd, MOSR.Accredited, MOSR.OrganizationId, MOSR.OrganizationName, R.RetroactiveC4KRevenue, R.FamilyFeesRevenue, R.C4KRevenue;
+
