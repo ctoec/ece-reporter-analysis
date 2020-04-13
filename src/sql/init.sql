@@ -57,8 +57,6 @@ CREATE TABLE MonthlyEnrollmentReporting (
     Rate decimal (18,2),
     Revenue decimal (18,2),
     FundingSource int,
-    SMI75 int,
-    FPL200 int,
     Under75SMI bit,
     Under200FPL bit,
     CONSTRAINT MonthlyEnrollment UNIQUE
