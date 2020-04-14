@@ -55,7 +55,10 @@ CREATE TABLE MonthlyEnrollmentReporting (
     Foster bit,
     Accredited bit,
     Rate decimal (18,2),
+    CDCRevenue decimal (18,2),
     FundingSource int,
+    SMI75 int,
+    FPL200 int,
     Under75SMI bit,
     Under200FPL bit,
     CONSTRAINT MonthlyEnrollment UNIQUE
@@ -79,7 +82,9 @@ CREATE TABLE MonthlyOrganizationSpaceReporting(
     Capacity int,
     TimeName varchar(10),
     AgeGroupName varchar(20),
-    FilledSpaces int,
+    UtilizedSpaces int,
+    UtilizedTitleISpaces int,
+    UtilizedNonTitle1Spaces int,
     CDCRevenue decimal (18,2),
     CONSTRAINT MonthlyReport UNIQUE
     (ReportingPeriodId, OrganizationId, ReportFundingSourceType,
@@ -98,8 +103,9 @@ CREATE TABLE MonthlyOrganizationRevenueReporting(
     RetroactiveC4KRevenue bit,
     FamilyFeesRevenue decimal(18,2),
     C4KRevenue decimal(18,2),
+    CDCRevenue decimal(18,2),
     TotalCapacity int,
-    FilledSpaces int,
+    UtilizedSpaces int,
     CONSTRAINT MonthlyOrganizationRevenue UNIQUE
     (ReportingPeriodId, OrganizationId)
 );
