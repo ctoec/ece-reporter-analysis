@@ -8,7 +8,7 @@ DECLARE @MyCursor CURSOR;
 DECLARE @ReportId int;
 BEGIN
     SET @MyCursor = CURSOR FOR
-    select Id from Report
+    select Id from Report WHERE SubmittedAt IS NOT NULL
 
     OPEN @MyCursor
     FETCH NEXT FROM @MyCursor
