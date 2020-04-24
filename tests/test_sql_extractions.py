@@ -21,8 +21,8 @@ class TestSQLExtraction(unittest.TestCase):
 		# Build in a wait to check for db coming up
 		cls.conn = engine.connect()
 
-	def test_enrollment_call(self):
-		query = pd.read_sql(sql='select * from CDCMonthlyEnrollmentReporting(2290)', con=self.conn)
+	# def test_enrollment_call(self):
+	# 	query = pd.read_sql(sql='select * from CDCMonthlyEnrollmentReporting(2290)', con=self.conn)
 
 	# def test_inssert
 

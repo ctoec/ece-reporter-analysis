@@ -15,7 +15,7 @@ create table Enrollment
     SysEndTime   datetime2(0)
         constraint Enrollment_SysEnd default CONVERT([datetime2](0), '9999-12-31 23:59:59') not null,
     UpdatedAt    datetime2
-)
+) WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = dbo.EnrollmentHistory))
 go
 SET IDENTITY_INSERT Enrollment ON
 create index IX_Enrollment_AuthorId

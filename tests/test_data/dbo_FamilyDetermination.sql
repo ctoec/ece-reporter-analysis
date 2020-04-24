@@ -14,7 +14,7 @@ create table FamilyDetermination
     SysEndTime        datetime2(0)
         constraint FamilyDetermination_SysEnd default CONVERT([datetime2](0), '9999-12-31 23:59:59') not null,
     UpdatedAt         datetime2
-)
+) WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = dbo.FamilyDeterminationHistory))
 go
 SET IDENTITY_INSERT FamilyDetermination ON
 create index IX_FamilyDetermination_AuthorId

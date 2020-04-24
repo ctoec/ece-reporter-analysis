@@ -11,7 +11,7 @@ create table Rates
     TimeID     int
 )
 go
-SET IDENTITY_INSERT Rates ON
+
 INSERT INTO dbo.Rates (Accredited, TitleI, Region, AgeGroup, Time, Rate, RegionId, AgeGroupID, TimeID) VALUES (0, 0, N'East', N'Infant/Toddler', N'FT', 148.73, 0, 0, 0);
 INSERT INTO dbo.Rates (Accredited, TitleI, Region, AgeGroup, Time, Rate, RegionId, AgeGroupID, TimeID) VALUES (0, 0, N'East', N'Infant/Toddler', N'PT', 52.1, 0, 0, 1);
 INSERT INTO dbo.Rates (Accredited, TitleI, Region, AgeGroup, Time, Rate, RegionId, AgeGroupID, TimeID) VALUES (0, 0, N'East', N'Preschool', N'FT', 126.59, 0, 1, 0);

@@ -1,4 +1,4 @@
-CREATE FUNCTION CDCMonthlyOrganizationSpaceReporting(@ReportId int)
+CREATE OR ALTER FUNCTION CDCMonthlyOrganizationSpaceReporting(@ReportId int)
     RETURNS TABLE
 AS
     RETURN
@@ -33,4 +33,4 @@ SELECT
                                                  MER.AgeGroupName = NameLookup.AgeGroup and
                                                  MER.FundingSource = Report.Type
     WHERE Report.Id = @ReportId
-    GROUP BY RP.Id, Report.Id, RP.Period, RP.PeriodStart, RP.PeriodEnd, Report.Accredited, Report.Type, o.Id, o.Name, FS.Capacity, NameLookup.Time, NameLookup.AgeGroup;
+    GROUP BY RP.Id, Report.Id, RP.Period, RP.PeriodStart, RP.PeriodEnd, Report.Accredited, Report.Type, o.Id, o.Name, FS.Capacity, NameLookup.Time, NameLookup.AgeGroup

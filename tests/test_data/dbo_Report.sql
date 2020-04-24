@@ -23,9 +23,9 @@ create index IX_Report_ReportingPeriodId
     on Report (ReportingPeriodId)
 go
 SET IDENTITY_INSERT Report ON
-INSERT INTO dbo.Report (Id, Type, ReportingPeriodId, SubmittedAt, OrganizationId, Accredited, C4KRevenue, RetroactiveC4KRevenue, FamilyFeesRevenue, Comment) VALUES (2290, 0, 10918, N'2019-09-09 00:00:00.0000000', 886, 1, 0.00, 0, null, null);
-INSERT INTO dbo.Report (Id, Type, ReportingPeriodId, SubmittedAt, OrganizationId, Accredited, C4KRevenue, RetroactiveC4KRevenue, FamilyFeesRevenue, Comment) VALUES (2291, 0, 10919, N'2019-10-04 00:00:00.0000000', 886, 1, 0.00, 0, null, null);
-INSERT INTO dbo.Report (Id, Type, ReportingPeriodId, SubmittedAt, OrganizationId, Accredited, C4KRevenue, RetroactiveC4KRevenue, FamilyFeesRevenue, Comment) VALUES (2292, 0, 10920, N'2019-11-12 00:00:00.0000000', 886, 1, 0.00, 0, null, null);
+INSERT INTO dbo.Report (Id, Type, ReportingPeriodId, SubmittedAt, OrganizationId, Accredited, C4KRevenue, RetroactiveC4KRevenue, FamilyFeesRevenue, Comment) VALUES (2290, 0, 10918, getdate(), 886, 1, 0.00, 0, null, null);
+INSERT INTO dbo.Report (Id, Type, ReportingPeriodId, SubmittedAt, OrganizationId, Accredited, C4KRevenue, RetroactiveC4KRevenue, FamilyFeesRevenue, Comment) VALUES (2291, 0, 10919, getdate(), 886, 1, 0.00, 0, null, null);
+INSERT INTO dbo.Report (Id, Type, ReportingPeriodId, SubmittedAt, OrganizationId, Accredited, C4KRevenue, RetroactiveC4KRevenue, FamilyFeesRevenue, Comment) VALUES (2292, 0, 10920, getdate(), 886, 1, 0.00, 0, null, null);
 INSERT INTO dbo.Report (Id, Type, ReportingPeriodId, SubmittedAt, OrganizationId, Accredited, C4KRevenue, RetroactiveC4KRevenue, FamilyFeesRevenue, Comment) VALUES (2293, 0, 10921, null, 886, 1, 0.00, 0, null, null);
 INSERT INTO dbo.Report (Id, Type, ReportingPeriodId, SubmittedAt, OrganizationId, Accredited, C4KRevenue, RetroactiveC4KRevenue, FamilyFeesRevenue, Comment) VALUES (2294, 0, 10950, null, 886, 1, 0.00, 0, null, null);
 INSERT INTO dbo.Report (Id, Type, ReportingPeriodId, SubmittedAt, OrganizationId, Accredited, C4KRevenue, RetroactiveC4KRevenue, FamilyFeesRevenue, Comment) VALUES (2295, 0, 10950, null, 887, 0, 0.00, 0, null, null);

@@ -15,7 +15,7 @@ create table Funding
     UpdatedAt              datetime2,
     FundingSpaceId         int,
     Time int
-)
+) WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = dbo.FundingHistory))
 go
 
 create index IX_Funding_AuthorId

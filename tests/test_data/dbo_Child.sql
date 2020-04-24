@@ -29,7 +29,7 @@ create table Child
         constraint Child_SysEnd default CONVERT([datetime2](0), '9999-12-31 23:59:59') not null,
     UpdatedAt                       datetime2,
     C4KFamilyCaseNumber             int
-)
+) WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = dbo.ChildHistory))
 go
 
 create index IX_Child_AuthorId
