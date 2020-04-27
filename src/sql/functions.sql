@@ -31,6 +31,7 @@ CREATE OR ALTER FUNCTION CDCMonthlyEnrollmentReporting (@ReportId int)
 	BlackOrAfricanAmerican bit,
 	NativeHawaiianOrPacificIslander bit,
 	White bit,
+	TwoOrMoreRaces bit,
 	HispanicOrLatinxEthnicity bit,
 	Gender int,
     Foster bit,
@@ -79,6 +80,13 @@ select
 	Child.BlackOrAfricanAmerican,
 	Child.NativeHawaiianOrPacificIslander,
 	Child.White,
+	CASE WHEN
+       (SIGN(AmericanIndianOrAlaskaNative) +
+       SIGN(Asian) +
+       SIGN(BlackOrAfricanAmerican) +
+       SIGN(NativeHawaiianOrPacificIslander) +
+       SIGN(White)) > 1
+       THEN 1 ELSE 0 END as TwoRaces,
 	Child.HispanicOrLatinxEthnicity,
 	Child.Gender,
     Child.Foster,

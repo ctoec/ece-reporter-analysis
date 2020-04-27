@@ -57,6 +57,7 @@ CREATE TABLE MonthlyEnrollmentReporting (
 	BlackOrAfricanAmerican bit,
 	NativeHawaiianOrPacificIslander bit,
 	White bit,
+	TwoOrMoreRaces bit,
 	HispanicOrLatinxEthnicity bit,
 	Gender int,
     Foster bit,
