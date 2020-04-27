@@ -43,6 +43,7 @@ CREATE TABLE MonthlyEnrollmentReporting (
     Sasid nvarchar(max),
     LastName varchar(250),
     FirstName varchar(250),
+    BirthDate date,
     AgeGroupName varchar(50),
     TimeName varchar(5),
     SiteLicenseNumber int,
