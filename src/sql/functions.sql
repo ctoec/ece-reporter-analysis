@@ -17,6 +17,7 @@ CREATE OR ALTER FUNCTION CDCMonthlyEnrollmentReporting (@ReportId int)
     Sasid nvarchar(max),
     LastName varchar(250),
     FirstName varchar(250),
+    BirthDate date,
     AgeGroupName varchar(50),
     TimeName varchar(5),
     SiteLicenseNumber int,
@@ -26,6 +27,14 @@ CREATE OR ALTER FUNCTION CDCMonthlyEnrollmentReporting (@ReportId int)
     [Exit] date,
     NumberOfPeople int,
     Income int,
+    AmericanIndianOrAlaskaNative bit,
+	Asian bit,
+	BlackOrAfricanAmerican bit,
+	NativeHawaiianOrPacificIslander bit,
+	White bit,
+	TwoOrMoreRaces bit,
+	HispanicOrLatinxEthnicity bit,
+	Gender int,
     Foster bit,
     Accredited bit,
     Rate decimal (18,2),
@@ -58,6 +67,7 @@ select
     Child.Sasid,
     Child.LastName,
     Child.FirstName,
+    Child.Birthdate,
     Rates.AgeGroup as AgeGroupName,
     Rates.Time as TimeName,
     Site.LicenseNumber as SiteLicenseNumber,
@@ -67,6 +77,20 @@ select
     Enrollment.[Exit],
     CASE WHEN Child.Foster = 1 THEN 1 ELSE FDTemp.NumberOfPeople END as NumberOfPeople,
     CASE WHEN Child.Foster = 1 THEN 0 ELSE FDTemp.Income END as Income,
+    Child.AmericanIndianOrAlaskaNative,
+	Child.Asian,
+	Child.BlackOrAfricanAmerican,
+	Child.NativeHawaiianOrPacificIslander,
+	Child.White,
+	CASE WHEN
+       (SIGN(AmericanIndianOrAlaskaNative) +
+       SIGN(Asian) +
+       SIGN(BlackOrAfricanAmerican) +
+       SIGN(NativeHawaiianOrPacificIslander) +
+       SIGN(White)) > 1
+       THEN 1 ELSE 0 END as TwoRaces,
+	Child.HispanicOrLatinxEthnicity,
+	Child.Gender,
     Child.Foster,
     Report.Accredited,
     Rates.Rate,
