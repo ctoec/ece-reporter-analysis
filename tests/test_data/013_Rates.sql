@@ -1,17 +1,3 @@
-create table Rates
-(
-    Accredited bit,
-    TitleI     bit,
-    Region     varchar(max),
-    AgeGroup   varchar(max),
-    Time       varchar(max),
-    Rate       float,
-    RegionId   int,
-    AgeGroupID int,
-    TimeID     int
-)
-go
-
 INSERT INTO dbo.Rates (Accredited, TitleI, Region, AgeGroup, Time, Rate, RegionId, AgeGroupID, TimeID) VALUES (0, 0, N'East', N'Infant/Toddler', N'FT', 148.73, 0, 0, 0);
 INSERT INTO dbo.Rates (Accredited, TitleI, Region, AgeGroup, Time, Rate, RegionId, AgeGroupID, TimeID) VALUES (0, 0, N'East', N'Infant/Toddler', N'PT', 52.1, 0, 0, 1);
 INSERT INTO dbo.Rates (Accredited, TitleI, Region, AgeGroup, Time, Rate, RegionId, AgeGroupID, TimeID) VALUES (0, 0, N'East', N'Preschool', N'FT', 126.59, 0, 1, 0);

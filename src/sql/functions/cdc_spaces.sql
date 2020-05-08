@@ -24,10 +24,11 @@ SELECT
     INNER JOIN ReportingPeriod RP on Report.ReportingPeriodId = RP.Id
     INNER JOIN Organization O on Report.OrganizationId = O.Id
     INNER JOIN FundingSpace FS on O.Id = FS.OrganizationId and Report.Type = FS.Source
+    INNER JOIN FundingTimeAllocation FTA on FS.Id = FTA.FundingSpaceId
     -- Only use rates table to get names of Age Group and Time
     INNER JOIN (select distinct AgeGroup, Time, TimeID, AgeGroupId From Rates) as NameLookup on
-                NameLookup.TimeID = FS.Time and NameLookup.AgeGroupID = FS.AgeGroup
-    INNER JOIN MonthlyEnrollmentReporting MER on MER.OrganizationId = FS.OrganizationId and
+                NameLookup.TimeID = FTA.Time and NameLookup.AgeGroupID = FS.AgeGroup
+    LEFT OUTER JOIN MonthlyEnrollmentReporting MER on MER.OrganizationId = FS.OrganizationId and
                                                  MER.ReportingPeriodId = RP.Id and
                                                  MER.TimeName = NameLookup.Time and
                                                  MER.AgeGroupName = NameLookup.AgeGroup and

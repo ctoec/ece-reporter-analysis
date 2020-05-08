@@ -9,5 +9,9 @@ done
 
 # Add test data into database
 ./tests/build_local_test_data.sh
-pytest tests/
-sleep 10000
+#pytest tests/
+while true
+do
+	echo "Press [CTRL+C] to stop.."
+	sleep 10000
+done

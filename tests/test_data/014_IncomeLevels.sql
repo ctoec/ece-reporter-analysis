@@ -1,12 +1,3 @@
-create table IncomeLevels
-(
-    NumberOfPeople int,
-    x75SMI         int,
-    x200FPL        int
-)
-go
-
-
 INSERT INTO dbo.IncomeLevels (NumberOfPeople, x75SMI, x200FPL) VALUES (1, 43895, 24280);
 INSERT INTO dbo.IncomeLevels (NumberOfPeople, x75SMI, x200FPL) VALUES (2, 57400, 32920);
 INSERT INTO dbo.IncomeLevels (NumberOfPeople, x75SMI, x200FPL) VALUES (3, 70906, 41560);

@@ -1,16 +1,3 @@
-create table ReportingPeriod
-(
-    Id          int identity
-        constraint PK_ReportingPeriod
-            primary key,
-    Type        int  not null,
-    Period date not null,
-    PeriodStart date not null,
-    PeriodEnd   date not null,
-    DueAt       date not null
-)
-go
-
 SET IDENTITY_INSERT ReportingPeriod ON
 INSERT INTO dbo.ReportingPeriod (Id, Type, Period, PeriodStart, PeriodEnd, DueAt) VALUES (10918, 0, N'2017-07-01', N'2017-07-03', N'2017-07-30', N'2017-08-18');
 INSERT INTO dbo.ReportingPeriod (Id, Type, Period, PeriodStart, PeriodEnd, DueAt) VALUES (10919, 0, N'2017-08-01', N'2017-07-31', N'2017-08-27', N'2017-09-15');
