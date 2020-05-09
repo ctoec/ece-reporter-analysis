@@ -24,6 +24,12 @@ jobs:
        versionSpec: '3.6'
     - script: pip install -r requirements.txt
       displayName: 'Install requirements'
+
+    - task: DockerCompose@0
+        inputs:
+          dockerComposeFile: "docker-compose.yaml"
+          dockerComposeCommand: "up --exit-code-from test_backend"
+
     - script: |
         pip install pytest
         pip install pytest-cov
@@ -35,10 +41,5 @@ jobs:
       inputs:
         testResultsFiles: '**/test-*.xml'
         testRunTitle: 'Publish test results for Python $(python.version)'
-
-#    - task: DockerCompose@0
-#        inputs:
-#          dockerComposeFile: "docker-compose.yaml"
-#          dockerComposeCommand: "up --exit-code-from test_backend"
 
 
