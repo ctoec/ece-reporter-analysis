@@ -24,9 +24,11 @@ jobs:
        versionSpec: '3.6'
     - script: pip install -r requirements.txt
       displayName: 'Install requirements'
-    - script: pytest tests/ --junitxml=junit/test-results.xml
-
-      displayName: 'Python test'
+    - script: |
+        pip install pytest
+        pip install pytest-cov
+        pytest tests --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html
+      displayName: 'Test with pytest'
 
     - task: PublishTestResults@2
       condition: succeededOrFailed()
