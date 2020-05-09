@@ -20,13 +20,14 @@ class TestSQLExtraction(unittest.TestCase):
 		engine = sqlalchemy.create_engine(conn_string)
 
 		# Build in a wait to check for db coming up
-		# cls.conn = engine.connect()
+		cls.conn = engine.connect()
 
 	def test_connection(self):
 		self.assertEqual(1, 1)
 
+		test = self.conn.execute('select * from new_table').fetchall()
+		print(test)
 
-		# self.conn.execute('select * from new_table')
 
 if __name__ == '__main__':
 	unittest.main()
