@@ -36,9 +36,9 @@ jobs:
         testResultsFiles: '**/test-*.xml'
         testRunTitle: 'Publish test results for Python $(python.version)'
 
-    - task: DockerCompose@0
-        inputs:
-          dockerComposeFile: "docker-compose.yaml"
-          dockerComposeCommand: "up --exit-code-from test_backend"
+#    - task: DockerCompose@0
+#        inputs:
+#          dockerComposeFile: "docker-compose.yaml"
+#          dockerComposeCommand: "up --exit-code-from test_backend"
 
 
