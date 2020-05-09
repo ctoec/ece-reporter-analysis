@@ -24,12 +24,14 @@ jobs:
        versionSpec: '3.6'
     - script: pip install -r requirements.txt
       displayName: 'Install requirements'
-    - script: echo Hello, world!
-      displayName: 'Run a one-line script'
+    - script: pytest tests/ --junitxml=junit/test-results.xml
 
-    - task: PythonScript@0
+      displayName: 'Python test'
+
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
       inputs:
-        scriptSource: 'inline'
-        script: |
-          print('Hello world 1')
-          print('Hello world 2')
+        testResultsFiles: '**/test-*.xml'
+        testRunTitle: 'Publish test results for Python $(python.version)'
+
+
