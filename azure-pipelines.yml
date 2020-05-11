@@ -29,7 +29,7 @@ jobs:
       displayName: "Run Docker Compose"
       inputs:
        dockerComposeFile: "docker-compose.yml"
-       dockerComposeCommand: "up --exit-code-from test_backend"
+       dockerComposeCommand: "up --exit-code-from backend"
 
     - script: |
         pip install pytest
