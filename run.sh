@@ -3,7 +3,7 @@
 set -e
 while ! /opt/mssql-tools/bin/sqlcmd -S test_db -U sa -P TestPassword1 -q 'select 1';
 do
-echo "waiting"
+echo "waiting for DB"
 sleep 10
 done
 
