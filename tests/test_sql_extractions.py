@@ -86,5 +86,6 @@ class TestSQLExtraction(unittest.TestCase):
 		# self.assertEqual(float(revenue), 6342.95)
 # Check valid foster logic
 
+
 if __name__ == '__main__':
 	unittest.main()
