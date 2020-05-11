@@ -19,7 +19,7 @@ jobs:
   displayName: 'ECE Extraction'
 
   steps:
-    # Create Docker complex
+    # Create Docker compose system
     - task: DockerCompose@0
       displayName: "Run Docker Compose"
       inputs:
@@ -32,5 +32,4 @@ jobs:
       inputs:
         testResultsFiles: '**/test-*.xml'
         testRunTitle: 'Publish test results for Python $(python.version)'
-
 
