@@ -26,9 +26,10 @@ jobs:
       displayName: 'Install requirements'
 
     - task: DockerCompose@0
-        inputs:
-          dockerComposeFile: "docker-compose.yaml"
-          dockerComposeCommand: "up --exit-code-from test_backend"
+      displayName: "Run Docker Compose"
+      inputs:
+       dockerComposeFile: "docker-compose.yaml"
+       dockerComposeCommand: "up --exit-code-from test_backend"
 
     - script: |
         pip install pytest
