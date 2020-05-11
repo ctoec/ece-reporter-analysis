@@ -19,23 +19,17 @@ jobs:
   displayName: 'ECE Extraction'
 
   steps:
-    - task: UsePythonVersion@0
-      inputs:
-       versionSpec: '3.6'
-    - script: pip install -r requirements.txt
-      displayName: 'Install requirements'
-
     - task: DockerCompose@0
       displayName: "Run Docker Compose"
       inputs:
        dockerComposeFile: "docker-compose.yml"
        dockerComposeCommand: "up --exit-code-from backend"
-
-    - script: |
-        pip install pytest
-        pip install pytest-cov
-        pytest tests --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html
-      displayName: 'Test with pytest'
+#
+#    - script: |
+#        pip install pytest
+#        pip install pytest-cov
+#        pytest tests --doctest-modules --junitxml=junit/test-results.xml --cov=. --cov-report=xml --cov-report=html
+#      displayName: 'Test with pytest'
 
     - task: PublishTestResults@2
       condition: succeededOrFailed()
