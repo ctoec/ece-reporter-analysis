@@ -12,3 +12,9 @@ done
 
 # Run tests and write results to test volume
 pytest tests/ --junitxml=tests/test-results.xml
+
+#while true
+#do
+#	echo "Press [CTRL+C] to stop.."
+#	sleep 10000
+#done
