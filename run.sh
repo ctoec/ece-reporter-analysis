@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Wait for DB to come up
+# Wait for DB to come up to continue with tests
 set -e
 while ! /opt/mssql-tools/bin/sqlcmd -S test_db -U sa -P TestPassword1 -q 'select 1';
 do
