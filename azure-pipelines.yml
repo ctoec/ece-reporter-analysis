@@ -1,0 +1,35 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pr:
+  branches:
+    include:
+    - '*'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+jobs:
+- job: test_ece_extraction
+  displayName: 'ECE Extraction'
+
+  steps:
+    # Create Docker compose system
+    - task: DockerCompose@0
+      displayName: "Run Docker Compose"
+      inputs:
+       dockerComposeFile: "docker-compose.yml"
+       dockerComposeCommand: "up --exit-code-from backend"
+
+    # Publish results to Azure
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testResultsFiles: '**/test-*.xml'
+        testRunTitle: 'Publish test results for Python $(python.version)'
+
