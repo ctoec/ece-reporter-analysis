@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Wait for DB to come up
+
+# Wait for DB to come up to continue with tests
 set -e
 while ! /opt/mssql-tools/bin/sqlcmd -S test_db -U sa -P TestPassword1 -q 'select 1';
 do
@@ -10,5 +11,5 @@ done
 # Add test data into database
 ./tests/build_local_test_data.sh
 
-# Run tests and write results to test volume
+# Run tests and write results to test volume for printing
 pytest tests/ --junitxml=tests/test-results.xml
