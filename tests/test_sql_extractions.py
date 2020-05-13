@@ -62,7 +62,7 @@ class TestSQLExtraction(unittest.TestCase):
 
 		# Check summed utilized numbers
 		total_dict = lookup_dict['UtilizedSpaces']
-		self.assertEqual(total_dict[(FT, INFANT)], 5)
+		self.assertEqual(total_dict[(FT, INFANT)], 6)
 		self.assertEqual(total_dict[(PT, INFANT)], 2)
 		self.assertEqual(total_dict[(FT, PRESCHOOL)], 1)
 		self.assertEqual(total_dict[(PT, PRESCHOOL)], 1)
@@ -74,7 +74,7 @@ class TestSQLExtraction(unittest.TestCase):
 
 		# Check Standard utilized numbers
 		non_title_one_dict = lookup_dict['UtilizedNonTitle1Spaces']
-		self.assertEqual(non_title_one_dict[(FT, INFANT)], 4)
+		self.assertEqual(non_title_one_dict[(FT, INFANT)], 5)
 		self.assertEqual(non_title_one_dict[(PT, INFANT)], 2)
 		self.assertEqual(non_title_one_dict[(FT, PRESCHOOL)], 1)
 		self.assertEqual(non_title_one_dict[(PT, PRESCHOOL)], 1)
@@ -85,7 +85,7 @@ class TestSQLExtraction(unittest.TestCase):
 		# Test summation of CDC Revenue
 		query = 'select CDCRevenue From MonthlyOrganizationRevenueReporting'
 		revenue = self.conn.execute(query).fetchall()[0][0]
-		self.assertEqual(float(revenue), 6632.20)
+		self.assertEqual(float(revenue), 7481.95)
 
 		# Test that breakdown of revenue is correct
 		query = 'SELECT AgeGroupName,TimeName, Sum(CDCRevenue) AS Revenue ' \
@@ -93,10 +93,37 @@ class TestSQLExtraction(unittest.TestCase):
 				'where ReportId = 2292 ' \
 				'GROUP BY AgeGroupName, TimeName'
 
-		df = pd.read_sql(sql=query, con=self.conn, index_col=['TimeName', 'AgeGroupName'])
+		df = pd.read_sql(sql=query, con=self.conn, index_col=['AgeGroupName', 'TimeName'])
+		lookup_dict = df.to_dict()['Revenue']
+		# Check breakdown of revenue by type
+		self.assertEqual(5205.10, float(lookup_dict[(INFANT, FT)]))
+		self.assertEqual(595.00, float(lookup_dict[(INFANT, PT)]))
+		self.assertEqual(826.60, float(lookup_dict[(PRESCHOOL, FT)]))
+		self.assertEqual(289.25, float(lookup_dict[(PRESCHOOL, PT)]))
+		self.assertEqual(566.00, float(lookup_dict[(SCHOOL_AGE, FT)]))
 
+	def test_count_number_of_families(self):
 
+		query = """
+		SELECT     NumberOfPeople,
+        COUNT(DISTINCT(ChildId)) AS NumberOfFamilies
+		FROM MonthlyEnrollmentReporting
+		WHERE Under200FPL = 1
+		GROUP BY NumberOfPeople"""
 
+		lookup_dict = pd.read_sql(sql=query, con=self.conn, index_col='NumberOfPeople').to_dict()['NumberOfFamilies']
+
+		self.assertEqual(lookup_dict[1], 1)
+		self.assertEqual(lookup_dict[3], 5)
+		self.assertEqual(lookup_dict[4], 1)
+		self.assertEqual(lookup_dict[5], 1)
+		self.assertEqual(lookup_dict[9], 1)
+
+	def test_c4k_certificate(self):
+
+		query = 'select count(*) from MonthlyEnrollmentReporting WHERE ActiveC4K = 1'
+		active_c4k_certificates = self.conn.execute(query).fetchall()[0][0]
+		self.assertEqual(active_c4k_certificates, 1)
 
 
 if __name__ == '__main__':

@@ -130,13 +130,12 @@ select
     inner join Family FOR SYSTEM_TIME AS OF @SystemTime AS Family on Child.FamilyId = Family.Id
     INNER JOIN Report on Organization.Id = Report.OrganizationId and Report.ReportingPeriodId = RPCDC.Id
     INNER JOIN FundingSpace FS on F.FundingSpaceId = FS.Id
-    inner join FundingTimeAllocation FTA on FS.Id = FTA.FundingSpaceId
     LEFT OUTER JOIN C4KCertificate as C4K on C4K.ChildId = Child.Id
     LEFT OUTER JOIN Rates on Rates.RegionId = Site.Region and
                              Rates.Accredited = Report.Accredited and
                              Rates.TitleI = Site.TitleI and
                              Rates.AgeGroupID = Enrollment.AgeGroup and
-                             Rates.TimeID = FTA.Time
+                             Rates.TimeID = FS.Time
     left join (
         select
           Id as FamilyDeterminationId,

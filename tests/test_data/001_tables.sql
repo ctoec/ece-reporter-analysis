@@ -134,7 +134,8 @@ create table FundingSpace
 		constraint FK_FundingSpace_Organization_OrganizationId
 			references Organization,
 	Source int not null,
-	AgeGroup int not null
+	AgeGroup int not null,
+	Time int not null
 )
 go
 
@@ -142,23 +143,26 @@ create index IX_FundingSpace_OrganizationId
 	on FundingSpace (OrganizationId)
 go
 
-create table FundingTimeAllocation
+
+
+create table FundingTimeSplit
 (
 	Id int identity
-		constraint PK_FundingTimeAllocation
+		constraint PK_FundingTimeSplit
 			primary key,
 	FundingSpaceId int not null
-		constraint FK_FundingTimeAllocation_FundingSpace_FundingSpaceId
+		constraint FK_FundingTimeSplit_FundingSpace_FundingSpaceId
 			references FundingSpace
 				on delete cascade,
-	Weeks int not null,
-	Time int not null
+	FullTimeWeeks int not null,
+	PartTimeWeeks int not null
 )
 go
 
-create index IX_FundingTimeAllocation_FundingSpaceId
-	on FundingTimeAllocation (FundingSpaceId)
+create unique index IX_FundingTimeSplit_FundingSpaceId
+	on FundingTimeSplit (FundingSpaceId)
 go
+
 
 create table ReportingPeriod
 (
