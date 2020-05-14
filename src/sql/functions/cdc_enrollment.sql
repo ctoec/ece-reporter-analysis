@@ -152,6 +152,6 @@ select
       ) as FDTemp
       on FDTemp.FamilyId = Family.Id and rn = 1
     LEFT JOIN IncomeLevels on FDTemp.NumberOfPeople = IncomeLevels.NumberOfPeople
-    WHERE F.Source IN (0, 1) and Report.Id = @ReportId;
+    WHERE F.Source = 0 and Report.Id = @ReportId;
 RETURN
 END
