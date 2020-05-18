@@ -7,3 +7,4 @@ venv/
 .idea/
 .DS_Store
 tests/test-results.xml
+src/config.ini
