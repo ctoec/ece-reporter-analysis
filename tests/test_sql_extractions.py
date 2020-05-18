@@ -10,7 +10,7 @@ PRESCHOOL = 'Preschool'
 SCHOOL_AGE = 'School-age'
 
 
-class TestSQLExtraction(unittest.TestCase):
+class TestSQLExtractionFromDummy(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(cls):
