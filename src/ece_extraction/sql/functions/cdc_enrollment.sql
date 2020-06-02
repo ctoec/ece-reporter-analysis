@@ -5,24 +5,22 @@ select
     Site.Id as SiteId,
     Site.Name as SiteName,
     Enrollment.Id as EnrollmentId,
-    FamilyDeterminationId as FamilyDeterminiationId,
+    FamilyDeterminationId,
     Family.Id as FamilyId,
     RPCDC.Id as ReportingPeriodId,
     Report.Id as ReportId,
     RPCDC.Period,
-    RPCDC.PeriodStart as ReportingPeriodStart,
-    RPCDC.PeriodEnd as ReportingPeriodEnd,
+    RPCDC.PeriodStart,
+    RPCDC.PeriodEnd,
     Child.Sasid,
     Child.LastName,
     Child.FirstName,
     Site.TitleI,
     Report.Accredited,
-    Enrollment.AgeGroup,
     FS.Time,
     Site.Region,
     Enrollment.AgeGroup,
-    Site.LicenseNumber as SiteLicenseNumber,
-    Site.TitleI,
+    Site.LicenseNumber,
     Enrollment.Entry,
     Enrollment.[Exit],
     Child.Foster,
@@ -35,8 +33,6 @@ select
 	Child.White,
 	Child.HispanicOrLatinxEthnicity,
 	Child.Gender,
-    Child.Foster,
-    Report.Accredited,
     F.Source,
     C4K.StartDate,
     C4K.EndDate
@@ -50,7 +46,8 @@ select
     inner join Family FOR SYSTEM_TIME AS OF :system_time AS Family on Child.FamilyId = Family.Id
     INNER JOIN Report on Organization.Id = Report.OrganizationId and Report.ReportingPeriodId = RPCDC.Id
     INNER JOIN FundingSpace FS on F.FundingSpaceId = FS.Id
-    LEFT OUTER JOIN C4KCertificate as C4K on C4K.ChildId = Child.Id
+    LEFT OUTER JOIN C4KCertificate as C4K on C4K.ChildId = Child.Id AND C4K.StartDate <= RPCDC.PeriodEnd AND
+                    (C4K.EndDate IS NULL OR C4K.EndDate >= RPCDC.PeriodStart)
     left join (
         select
           Id as FamilyDeterminationId,

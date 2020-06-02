@@ -1,4 +1,4 @@
-Accredited,TitleI,Region,AgeGroup,Time,Rate,RegionId,AgeGroupID,TimeID
+Accredited,TitleI,Region,AgeGroup,Time,Rate,RegionId,AgeGroupId,TimeId
 0,0,East,Infant/Toddler,FT,148.73,0,0,0
 0,0,East,Infant/Toddler,PT,52.1,0,0,1
 0,0,East,Preschool,FT,126.59,0,1,0
