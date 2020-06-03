@@ -21,5 +21,3 @@ services:
       ACCEPT_EULA: Y
     logging:
       driver: "none"
-    ports:
-      - 1433:1433
