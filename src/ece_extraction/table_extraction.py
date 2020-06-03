@@ -98,14 +98,14 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame) -> pd.DataFrame:
 
     # Add Income level booleans
     income_level_df = pd.read_csv(INCOME_LEVEL_FILE)
-    income_merge = enrollment_df.merge(income_level_df,
+    enrollment_df = enrollment_df.merge(income_level_df,
                                        left_on=MonthlyEnrollmentReporting.FamilySize.name,
                                        right_on='NumberOfPeople')
-    enrollment_df[MonthlyEnrollmentReporting.SMI75.name] = income_merge['x75SMI']
-    enrollment_df[MonthlyEnrollmentReporting.Under75SMI.name] = np.where(income_merge.Income < income_merge.x75SMI,
+    enrollment_df[MonthlyEnrollmentReporting.SMI75.name] = enrollment_df['x75SMI']
+    enrollment_df[MonthlyEnrollmentReporting.Under75SMI.name] = np.where(enrollment_df.Income < enrollment_df.x75SMI,
                                                                          1, 0)
-    enrollment_df[MonthlyEnrollmentReporting.FPL200.name] = income_merge['x200FPL']
-    enrollment_df[MonthlyEnrollmentReporting.Under200FPL.name] = np.where(income_merge.Income < income_merge.x200FPL,
+    enrollment_df[MonthlyEnrollmentReporting.FPL200.name] = enrollment_df['x200FPL']
+    enrollment_df[MonthlyEnrollmentReporting.Under200FPL.name] = np.where(enrollment_df.Income < enrollment_df.x200FPL,
                                                                           1, 0)
 
     # Create a boolean column for children with two or more races

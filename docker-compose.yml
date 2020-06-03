@@ -6,8 +6,9 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./tests:/tests
-      - ./src/sql:/sql
+      - ./src:/src
       - ./run.sh:/run.sh
+      - ./tests/config.ini:/src/resource_access/config.ini
     entrypoint:
       - /bin/bash
       - run.sh
@@ -20,3 +21,5 @@ services:
       ACCEPT_EULA: Y
     logging:
       driver: "none"
+    ports:
+      - 1433:1433
