@@ -11,7 +11,6 @@ done
 # Add test data into database
 ./tests/build_local_test_data.sh
 
-sleep 10000
 export PYTHONPATH="${PYTHONPATH}:/src"
 
 ## Run tests and write results to test volume for printing
