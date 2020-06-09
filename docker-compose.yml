@@ -7,11 +7,11 @@ services:
     volumes:
       - ./tests:/tests
       - ./src:/src
-      - ./run.sh:/run.sh
+      - ./tests/run_tests.sh:/run_tests.sh
       - ./tests/config.ini:/src/resource_access/config.ini
     entrypoint:
       - /bin/bash
-      - run.sh
+      - run_tests.sh
     depends_on:
       - test_db
   test_db:
