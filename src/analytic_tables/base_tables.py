@@ -8,11 +8,12 @@ ANALYTIC_TABLE_BASE = declarative_base()
 class MonthlyEnrollmentReporting(ANALYTIC_TABLE_BASE):
     __tablename__ = 'MonthlyEnrollmentReporting'
 
-    ChildId = Column(mssql.UNIQUEIDENTIFIER, primary_key=True)
+    SourceChildId = Column(String, primary_key=True)
     OrganizationId = Column(Integer)
     OrganizationName = Column(mssql.VARCHAR(100))
     SiteId = Column(Integer)
     SiteName = Column(mssql.VARCHAR(100))
+    FacilityCode = Column(Integer)
     EnrollmentId = Column(Integer, primary_key=True)
     FamilyDeterminationId = Column(Integer)
     FamilyId = Column(Integer)
@@ -23,6 +24,7 @@ class MonthlyEnrollmentReporting(ANALYTIC_TABLE_BASE):
     ReportingPeriodEnd = Column(DateTime)
     Sasid = Column(mssql.VARCHAR)
     LastName = Column(mssql.VARCHAR(250))
+    MiddleName = Column(mssql.VARCHAR(250))
     FirstName = Column(mssql.VARCHAR(250))
     AgeGroupName = Column(mssql.VARCHAR(50))
     TimeName = Column(mssql.VARCHAR(5))

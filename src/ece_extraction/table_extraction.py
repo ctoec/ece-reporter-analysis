@@ -131,7 +131,7 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame) -> pd.DataFrame:
 
     # Rename columns
     rename_dict = {
-        'ChildId': MonthlyEnrollmentReporting.ChildId.name,
+        'ChildId': MonthlyEnrollmentReporting.SourceChildId.name,
         'OrganizationId': MonthlyEnrollmentReporting.OrganizationId.name,
         'OrganizationName': MonthlyEnrollmentReporting.OrganizationName.name,
         'SiteId': MonthlyEnrollmentReporting.SiteId.name,
@@ -146,6 +146,7 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame) -> pd.DataFrame:
         'PeriodEnd': MonthlyEnrollmentReporting.ReportingPeriodEnd.name,
         'Sasid': MonthlyEnrollmentReporting.Sasid.name,
         'LastName': MonthlyEnrollmentReporting.LastName.name,
+        'MiddleName': MonthlyEnrollmentReporting.MiddleName.name,
         'FirstName': MonthlyEnrollmentReporting.FirstName.name,
         'Accredited': MonthlyEnrollmentReporting.Accredited.name,
         'Time': MonthlyEnrollmentReporting.TimeName.name,
@@ -164,14 +165,14 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame) -> pd.DataFrame:
         'White': MonthlyEnrollmentReporting.White.name,
         'HispanicOrLatinxEthnicity': MonthlyEnrollmentReporting.HispanicOrLatinxEthnicity.name,
         'Gender': MonthlyEnrollmentReporting.Gender.name,
-        'Source': MonthlyEnrollmentReporting.FundingSource.name
+        'Source': MonthlyEnrollmentReporting.FundingSource.name,
+        'FacilityCode': MonthlyEnrollmentReporting.FacilityCode.name
     }
     enrollment_df = enrollment_df.rename(columns=rename_dict)
 
     # Remove non-existent columns
     table_cols = MonthlyEnrollmentReporting.__table__.columns.keys()
     enrollment_df = enrollment_df[list(set(enrollment_df.columns).intersection(table_cols))]
-
 
     return enrollment_df
 
