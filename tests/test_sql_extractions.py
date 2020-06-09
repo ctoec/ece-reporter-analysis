@@ -1,8 +1,7 @@
 import unittest
-import sqlalchemy
-import time
 import pandas as pd
-
+from resource_access.connections import get_mysql_connection
+from resource_access.constants import ECE_DB_SECTION
 FT = 'FT'
 PT = 'PT'
 INFANT = 'Infant/Toddler'
@@ -10,24 +9,17 @@ PRESCHOOL = 'Preschool'
 SCHOOL_AGE = 'School-age'
 
 
-class TestSQLExtraction(unittest.TestCase):
+class TestSQLExtractionFromDummy(unittest.TestCase):
 
 	@classmethod
 	def setUpClass(cls):
 		"""
 		Connect to database and set access to engine for all, runs before all other tests
 		"""
-		conn_string = f"mssql+pyodbc://sa:TestPassword1@test_db/master?driver=ODBC+Driver+17+for+SQL+Server&Mars_Connection=Yes"
-		engine = sqlalchemy.create_engine(conn_string)
+		engine = get_mysql_connection(ECE_DB_SECTION)
 
 		# Build in a wait to check for db coming up
 		cls.conn = engine.connect()
-
-	def test_unsubmitted_enrollment_report(self):
-
-		# Test that an unsubmitted report returns an empty dataframe
-		ret = pd.read_sql(sql='select * from CDCMonthlyEnrollmentReporting(2293)', con=self.conn)
-		self.assertEqual(len(ret), 0)
 
 	def test_extra_revenue(self):
 
@@ -105,13 +97,13 @@ class TestSQLExtraction(unittest.TestCase):
 	def test_count_number_of_families(self):
 
 		query = """
-		SELECT     NumberOfPeople,
+		SELECT     FamilySize,
         COUNT(DISTINCT(ChildId)) AS NumberOfFamilies
 		FROM MonthlyEnrollmentReporting
 		WHERE Under200FPL = 1
-		GROUP BY NumberOfPeople"""
+		GROUP BY FamilySize"""
 
-		lookup_dict = pd.read_sql(sql=query, con=self.conn, index_col='NumberOfPeople').to_dict()['NumberOfFamilies']
+		lookup_dict = pd.read_sql(sql=query, con=self.conn, index_col='FamilySize').to_dict()['NumberOfFamilies']
 
 		self.assertEqual(lookup_dict[1], 1)
 		self.assertEqual(lookup_dict[3], 5)

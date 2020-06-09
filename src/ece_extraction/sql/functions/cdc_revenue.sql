@@ -1,8 +1,4 @@
 
-CREATE OR ALTER FUNCTION CDCMonthlyOrganizationRevenueReporting(@ReportId int)
-    RETURNS TABLE
-AS
-    RETURN
 SELECT
     MOSR.ReportingPeriodId,
     MOSR.ReportId,

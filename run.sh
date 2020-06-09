@@ -11,5 +11,8 @@ done
 # Add test data into database
 ./tests/build_local_test_data.sh
 
-# Run tests and write results to test volume for printing
-pytest tests/ --junitxml=tests/test-results.xml
+export PYTHONPATH="${PYTHONPATH}:/src"
+
+## Run tests and write results to test volume for printing
+pytest tests/test_build_custom_report.py --junitxml=tests/test-load-results.xml
+pytest tests/test_sql_extractions.py --junitxml=tests/test-results.xml
