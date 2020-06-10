@@ -5,6 +5,7 @@ from datetime import datetime
 from sqlalchemy.sql import text
 from resource_access.constants import ECE_DB_SECTION
 from resource_access.connections import get_mysql_connection
+from analytic_tables.conversion_functions import validate_and_convert_state
 from analytic_tables.base_tables import MonthlyEnrollmentReporting, MonthlyOrganizationRevenueReporting, \
     MonthlyOrganizationSpaceReporting
 
@@ -129,6 +130,8 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame) -> pd.DataFrame:
     # Fill in times and age groups with text
     enrollment_df = replace_time_and_age_group_values(enrollment_df, 'Time', 'AgeGroup')
 
+    # Validate and formalize state names
+    enrollment_df['State'] = enrollment_df['State'].apply(validate_and_convert_state)
     # Rename columns
     rename_dict = {
         'ChildId': MonthlyEnrollmentReporting.SourceChildId.name,
@@ -166,7 +169,11 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame) -> pd.DataFrame:
         'HispanicOrLatinxEthnicity': MonthlyEnrollmentReporting.HispanicOrLatinxEthnicity.name,
         'Gender': MonthlyEnrollmentReporting.Gender.name,
         'Source': MonthlyEnrollmentReporting.FundingSource.name,
-        'FacilityCode': MonthlyEnrollmentReporting.FacilityCode.name
+        'FacilityCode': MonthlyEnrollmentReporting.FacilityCode.name,
+        'Zip': MonthlyEnrollmentReporting.ZipCode.name,
+        'Town': MonthlyEnrollmentReporting.Town.name,
+        'State': MonthlyEnrollmentReporting.State.name,
+        'AddressLine': MonthlyEnrollmentReporting.CombinedAddress.name
     }
     enrollment_df = enrollment_df.rename(columns=rename_dict)
 

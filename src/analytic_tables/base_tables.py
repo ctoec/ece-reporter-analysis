@@ -1,8 +1,12 @@
+import us
 from sqlalchemy.dialects import mssql
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, DateTime, Numeric, String
 
 ANALYTIC_TABLE_BASE = declarative_base()
+
+## TODO
+# Add in deduping of organizations
 
 
 class MonthlyEnrollmentReporting(ANALYTIC_TABLE_BASE):
@@ -26,6 +30,11 @@ class MonthlyEnrollmentReporting(ANALYTIC_TABLE_BASE):
     LastName = Column(mssql.VARCHAR(250))
     MiddleName = Column(mssql.VARCHAR(250))
     FirstName = Column(mssql.VARCHAR(250))
+    # Equivalent to varchar MAX
+    Town = Column(mssql.VARCHAR(None))
+    ZipCode = Column(mssql.VARCHAR(None))
+    State = Column(mssql.VARCHAR(None))
+    CombinedAddress = Column(mssql.VARCHAR(None))
     AgeGroupName = Column(mssql.VARCHAR(50))
     TimeName = Column(mssql.VARCHAR(5))
     SiteLicenseNumber = Column(Integer)
