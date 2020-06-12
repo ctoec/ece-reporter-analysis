@@ -13,7 +13,8 @@ def validate_and_convert_state(state_string: str) -> str:
     # Set Null as an empty string
     state_string = state_string if state_string else ''
     # Build dictionary keyed with potential names and with values as capitalized abbreviations
-    state_dict = {}
+    # Seeded with ECIS data that includes birth certificates with an indicator of being an non-US birth certificate
+    state_dict = {'not in usa': 'Not in USA'}
     for state_obj in us.STATES:
         base_abbr = state_obj.abbr
 

@@ -1,4 +1,3 @@
-import us
 from sqlalchemy.dialects import mssql
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, DateTime, Numeric, String
@@ -6,7 +5,7 @@ from sqlalchemy import Column, Integer, DateTime, Numeric, String
 ANALYTIC_TABLE_BASE = declarative_base()
 
 ## TODO
-# Add in deduping of organizations
+# Add in deduping of organizations and matching of sites and orgs
 
 
 class MonthlyEnrollmentReporting(ANALYTIC_TABLE_BASE):
@@ -22,15 +21,17 @@ class MonthlyEnrollmentReporting(ANALYTIC_TABLE_BASE):
     FamilyDeterminationId = Column(Integer)
     FamilyId = Column(Integer)
     ReportingPeriodId = Column(Integer, primary_key=True)
-    ReportId = Column(Integer, primary_key=True)
+    ReportId = Column(Integer)
     Period = Column(mssql.VARCHAR(25))
     ReportingPeriodStart = Column(DateTime)
     ReportingPeriodEnd = Column(DateTime)
-    Sasid = Column(mssql.VARCHAR)
+    Sasid = Column(mssql.VARCHAR(None))
+    BirthCertificateId = Column(mssql.VARCHAR(None))
+    StateOfBirth = Column(mssql.VARCHAR(10))
+    TownOfBirth = Column(mssql.VARCHAR(None))
     LastName = Column(mssql.VARCHAR(250))
     MiddleName = Column(mssql.VARCHAR(250))
     FirstName = Column(mssql.VARCHAR(250))
-    # Equivalent to varchar MAX
     Town = Column(mssql.VARCHAR(None))
     ZipCode = Column(mssql.VARCHAR(None))
     State = Column(mssql.VARCHAR(None))
@@ -53,6 +54,7 @@ class MonthlyEnrollmentReporting(ANALYTIC_TABLE_BASE):
     HispanicOrLatinxEthnicity = Column(mssql.BIT)
     Gender = Column(mssql.BIT)
     Foster = Column(mssql.BIT)
+    HasIEP = Column(mssql.BIT)
     Accredited = Column(mssql.BIT)
     Rate = Column(mssql.DECIMAL(18, 2))
     CDCRevenue = Column(mssql.DECIMAL(18, 2))

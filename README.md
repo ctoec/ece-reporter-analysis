@@ -47,6 +47,24 @@ Static tables used in transforming data, this will need to updated as they chang
 - IncomeLevels: Income levels by family size for 75% of State Median Income and 200% of Federal Poverty Level.
 - Rates: Pre-set rates for Child Day Care slots based on various child and site characteristics. 
 
+#### TODOs
+
+- Add Funding Time Splits, current reporting only allows for FT or PT
+
+### ecis_extraction
+
+This pulls data from the ECIS system and inserts it in the analytical database with enrollments
+on a monthly basis historically. As of 2020-06-11 the data is from a snapshot of the ECIS database
+as of Feb. 2020.
+
+#### TODOs
+
+- Identify parent organizations for sites in ECIS
+- Get rate and revenue numbers for historical CDC data and non-CDC Funding Sources
+- Determine logic for C4K fundings and start dates, these live in `Enrollment.AdditionalFundingSources`
+- Check for active users, check if they have aged out
+- Schedule meeting with Julie after 6/24
+
 ## Tests
 
 Tests are set up to be run in an Azure Pipeline using the Docker Compose setup created in docker-compose.yml.

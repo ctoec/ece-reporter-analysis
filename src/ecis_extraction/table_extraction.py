@@ -1,0 +1,4 @@
+from resource_access.connections import get_mysql_connection
+from resource_access.constants import ECIS_DB_SECTION
+
+DATA_DB = get_mysql_connection(ECIS_DB_SECTION)

@@ -17,6 +17,7 @@ select
     Child.LastName,
     Child.MiddleName,
     Child.FirstName,
+    Child.BirthCertificateId,
     Family.Town,
     Family.State,
     Family.Zip,

@@ -173,7 +173,8 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame) -> pd.DataFrame:
         'Zip': MonthlyEnrollmentReporting.ZipCode.name,
         'Town': MonthlyEnrollmentReporting.Town.name,
         'State': MonthlyEnrollmentReporting.State.name,
-        'AddressLine': MonthlyEnrollmentReporting.CombinedAddress.name
+        'AddressLine': MonthlyEnrollmentReporting.CombinedAddress.name,
+        'BirthCertificateId': MonthlyEnrollmentReporting.BirthCertificateId.name
     }
     enrollment_df = enrollment_df.rename(columns=rename_dict)
 
