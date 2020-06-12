@@ -10,3 +10,4 @@ tests/*.xml
 *.ini
 !tests/pytest.ini
 !tests/config.ini
+!resource_access/config_template.ini
