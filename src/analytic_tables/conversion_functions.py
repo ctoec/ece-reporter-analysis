@@ -1,8 +1,19 @@
 import us
-
+from datetime import datetime
+import calendar
 # An invalid state will return Null to the database
 INVALID_STATE = None
 
+
+def get_beginning_and_end_of_month(date: datetime.date):
+    """
+    Get first and last day of a month
+    :param date: date in a month to get the first and last date of
+    :return: tuple of first and last day of a month
+    """
+    start = date.replace(day=1)
+    end = date.replace(day=calendar.monthrange(date.year, date.month)[1])
+    return start, end
 
 def validate_and_convert_state(state_string: str) -> str:
     """
