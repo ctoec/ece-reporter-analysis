@@ -1,5 +1,4 @@
 SELECT
-    RP.Id as ReportingPeriodId,
     Report.Id as ReportId,
     o.Id as OrganizationId,
     o.Name as OrganizationName,

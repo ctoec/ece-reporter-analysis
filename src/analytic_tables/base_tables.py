@@ -6,12 +6,14 @@ ANALYTIC_TABLE_BASE = declarative_base()
 
 ## TODO
 # Add in deduping of organizations and matching of sites and orgs
+CDC_SOURCE = 'CDC'
 
 
 class MonthlyEnrollmentReporting(ANALYTIC_TABLE_BASE):
+    MONTH = 'Month'
     __tablename__ = 'MonthlyEnrollmentReporting'
 
-    SourceChildId = Column(String, primary_key=True)
+    SourceChildId = Column(mssql.VARCHAR(100), primary_key=True)
     OrganizationId = Column(Integer)
     OrganizationName = Column(mssql.VARCHAR(100))
     SiteId = Column(Integer)
@@ -20,11 +22,11 @@ class MonthlyEnrollmentReporting(ANALYTIC_TABLE_BASE):
     EnrollmentId = Column(Integer, primary_key=True)
     FamilyDeterminationId = Column(Integer)
     FamilyId = Column(Integer)
-    ReportingPeriodId = Column(Integer, primary_key=True)
     ReportId = Column(Integer)
-    Period = Column(mssql.VARCHAR(25))
-    ReportingPeriodStart = Column(DateTime)
-    ReportingPeriodEnd = Column(DateTime)
+    Period = Column(DateTime, primary_key=True)
+    PeriodType = Column(mssql.VARCHAR(25), primary_key=True)
+    PeriodStart = Column(DateTime)
+    PeriodEnd = Column(DateTime)
     Sasid = Column(mssql.VARCHAR(None))
     BirthCertificateId = Column(mssql.VARCHAR(None))
     StateOfBirth = Column(mssql.VARCHAR(10))
@@ -58,7 +60,7 @@ class MonthlyEnrollmentReporting(ANALYTIC_TABLE_BASE):
     Accredited = Column(mssql.BIT)
     Rate = Column(mssql.DECIMAL(18, 2))
     CDCRevenue = Column(mssql.DECIMAL(18, 2))
-    FundingSource = Column(Integer, primary_key=True)
+    FundingSource = Column(mssql.VARCHAR(50), primary_key=True)
     SMI75 = Column(Integer)
     FPL200 = Column(Integer)
     Under75SMI = Column(mssql.BIT)
@@ -67,15 +69,16 @@ class MonthlyEnrollmentReporting(ANALYTIC_TABLE_BASE):
 
 
 class MonthlyOrganizationSpaceReporting(ANALYTIC_TABLE_BASE):
+    MONTH = 'Month'
     __tablename__ = 'MonthlyOrganizationSpaceReporting'
 
-    ReportingPeriodId = Column(Integer, primary_key=True)
     ReportId = Column(Integer)
-    Period = Column(mssql.VARCHAR(25))
-    ReportingPeriodStart = Column(DateTime)
-    ReportingPeriodEnd = Column(DateTime)
+    Period = Column(mssql.VARCHAR(25), primary_key=True)
+    PeriodType = Column(mssql.VARCHAR(25), primary_key=True)
+    PeriodStart = Column(DateTime)
+    PeriodEnd = Column(DateTime)
     Accredited = Column(mssql.BIT)
-    ReportFundingSourceType = Column(Integer, primary_key=True)
+    ReportFundingSourceType = Column(mssql.VARCHAR(50), primary_key=True)
     OrganizationId = Column(Integer, primary_key=True)
     OrganizationName = Column(mssql.VARCHAR(200))
     Capacity = Column(Integer)
@@ -88,12 +91,13 @@ class MonthlyOrganizationSpaceReporting(ANALYTIC_TABLE_BASE):
 
 
 class MonthlyOrganizationRevenueReporting(ANALYTIC_TABLE_BASE):
+    MONTH = 'Month'
     __tablename__ = 'MonthlyOrganizationRevenueReporting'
-    ReportingPeriodId = Column(Integer, primary_key=True)
     ReportId = Column(Integer)
-    Period = Column(mssql.VARCHAR(25))
-    ReportingPeriodStart = Column(DateTime)
-    ReportingPeriodEnd = Column(DateTime)
+    Period = Column(DateTime, primary_key=True)
+    PeriodType = Column(mssql.VARCHAR(25), primary_key=True)
+    PeriodStart = Column(DateTime)
+    PeriodEnd = Column(DateTime)
     Accredited = Column(mssql.BIT)
     OrganizationId = Column(Integer, primary_key=True)
     OrganizationName = Column(String)
@@ -103,3 +107,4 @@ class MonthlyOrganizationRevenueReporting(ANALYTIC_TABLE_BASE):
     CDCRevenue = Column(mssql.DECIMAL(18, 2))
     TotalCapacity = Column(Integer)
     UtilizedSpaces = Column(Integer)
+    ReportFundingSourceType = Column(mssql.VARCHAR(50), primary_key=True)

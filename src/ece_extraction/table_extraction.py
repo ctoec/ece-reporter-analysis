@@ -7,7 +7,7 @@ from resource_access.constants import ECE_DB_SECTION
 from resource_access.connections import get_mysql_connection
 from analytic_tables.conversion_functions import validate_and_convert_state
 from analytic_tables.base_tables import MonthlyEnrollmentReporting, MonthlyOrganizationRevenueReporting, \
-    MonthlyOrganizationSpaceReporting
+    MonthlyOrganizationSpaceReporting, CDC_SOURCE
 
 ECE_DIR = os.path.dirname(__file__)
 ENROLLMENT_QUERY_FILE = ECE_DIR + '/sql/functions/cdc_enrollment.sql'
@@ -37,6 +37,7 @@ def process_report(report: pd.Series) -> None:
     # Write enrollment to analytics DB
     transformed_enrollment_df.to_sql(name=MonthlyEnrollmentReporting.__tablename__,
                                      con=DATA_DB, if_exists='append', index=False)
+    print("Enrollments loaded")
 
     # Pull raw space data, combine it with enrollments and transform it
     raw_space_df = get_raw_spaces(report)
@@ -45,6 +46,7 @@ def process_report(report: pd.Series) -> None:
     # Write space capacity and utilization to database
     transformed_space_df.to_sql(name=MonthlyOrganizationSpaceReporting.__tablename__,
                                 con=DATA_DB, if_exists='append', index=False)
+    print("Spaces loaded")
 
     # Pull raw revenue data, combine it with space data and transform
     raw_revenue_df = get_raw_revenue(report)
@@ -53,6 +55,7 @@ def process_report(report: pd.Series) -> None:
     # Write revenue data to database
     transformed_revenue_df.to_sql(name=MonthlyOrganizationRevenueReporting.__tablename__,
                                   con=DATA_DB, if_exists='append', index=False)
+    print("Revenue loaded")
 
 
 def add_new_reports(start_date: datetime.timestamp, end_date: datetime.timestamp):
@@ -86,6 +89,13 @@ def get_raw_enrollments(report: pd.Series) -> pd.DataFrame:
 def transform_enrollment_df(enrollment_df: pd.DataFrame) -> pd.DataFrame:
 
     # Add new columns
+    if sum(enrollment_df['Source'] != 0) != 0:
+        raise Exception("Non-CDC Source included in data pull")
+    # Set all sources ID'd as 0 as CDC
+    enrollment_df[MonthlyEnrollmentReporting.FundingSource.name] = CDC_SOURCE
+
+    # Set period type
+    enrollment_df[MonthlyEnrollmentReporting.PeriodType.name] = MonthlyEnrollmentReporting.MONTH
 
     # Set family size to 1 for foster, leave as number of people for other
     family_size_col = np.where(enrollment_df[MonthlyEnrollmentReporting.Foster.name] == 1,
@@ -142,11 +152,10 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame) -> pd.DataFrame:
         'EnrollmentId': MonthlyEnrollmentReporting.EnrollmentId.name,
         'FamilyDeterminationId': MonthlyEnrollmentReporting.FamilyDeterminationId.name,
         'FamilyId': MonthlyEnrollmentReporting.FamilyId.name,
-        'ReportingPeriodId': MonthlyEnrollmentReporting.ReportingPeriodId.name,
         'ReportId': MonthlyEnrollmentReporting.ReportId.name,
         'Period': MonthlyEnrollmentReporting.Period.name,
-        'PeriodStart': MonthlyEnrollmentReporting.ReportingPeriodStart.name,
-        'PeriodEnd': MonthlyEnrollmentReporting.ReportingPeriodEnd.name,
+        'PeriodStart': MonthlyEnrollmentReporting.PeriodStart.name,
+        'PeriodEnd': MonthlyEnrollmentReporting.PeriodEnd.name,
         'Sasid': MonthlyEnrollmentReporting.Sasid.name,
         'LastName': MonthlyEnrollmentReporting.LastName.name,
         'MiddleName': MonthlyEnrollmentReporting.MiddleName.name,
@@ -202,10 +211,13 @@ def transform_space_df(raw_space_df: pd.DataFrame, transformed_enrollment_df: pd
     # Rename time and age group for joining
     raw_space_df = replace_time_and_age_group_values(raw_space_df, 'Time', 'AgeGroup')
 
+    # Add period type
+
+    raw_space_df[MonthlyOrganizationSpaceReporting.PeriodType.name] = MonthlyOrganizationSpaceReporting.MONTH
     # Merge space and enrollment df
     merged_df = raw_space_df.merge(transformed_enrollment_df, how='left',
-                                   left_on=['OrganizationId', 'ReportingPeriodId', 'Time', 'AgeGroup'],
-                                   right_on=['OrganizationId', 'ReportingPeriodId', 'TimeName', 'AgeGroupName'],
+                                   left_on=['OrganizationId', 'Period', 'PeriodType', 'Time', 'AgeGroup'],
+                                   right_on=['OrganizationId', 'Period', 'PeriodType', 'TimeName', 'AgeGroupName'],
                                    suffixes=('', '_enrollment'))
 
     # Aggregate columns counting
@@ -217,11 +229,11 @@ def transform_space_df(raw_space_df: pd.DataFrame, transformed_enrollment_df: pd
         'TitleI<lambda_0>': MonthlyOrganizationSpaceReporting.UtilizedNonTitle1Spaces.name,
         'EnrollmentIdnunique': MonthlyOrganizationSpaceReporting.UtilizedSpaces.name,
         'CDCRevenuesum': MonthlyOrganizationSpaceReporting.CDCRevenue.name,
-        'ReportingPeriodId': MonthlyOrganizationSpaceReporting.ReportingPeriodId.name,
         'ReportId': MonthlyOrganizationSpaceReporting.ReportId.name,
         'Period': MonthlyOrganizationSpaceReporting.Period.name,
-        'PeriodStart':MonthlyOrganizationSpaceReporting.ReportingPeriodStart.name,
-        'PeriodEnd': MonthlyOrganizationSpaceReporting.ReportingPeriodEnd.name,
+        'PeriodType': MonthlyOrganizationSpaceReporting.PeriodType.name,
+        'PeriodStart': MonthlyOrganizationSpaceReporting.PeriodStart.name,
+        'PeriodEnd': MonthlyOrganizationSpaceReporting.PeriodEnd.name,
         'Accredited': MonthlyOrganizationSpaceReporting.Accredited.name,
         'Type': MonthlyOrganizationSpaceReporting.ReportFundingSourceType.name,
         'OrganizationId': MonthlyOrganizationSpaceReporting.OrganizationId.name,
@@ -261,19 +273,21 @@ def transform_revenue_df(raw_revenue_df: pd.DataFrame, transformed_space_df: pd.
     # Combine dataframes and sum
     merged_df = raw_revenue_df.merge(transformed_space_df, how='left', left_on=['Id'], right_on=['ReportId'],
                                      suffixes=('', '_spaces'))
-    grouped_columns = ['ReportingPeriodId', 'Id', 'Period', 'ReportingPeriodStart', 'ReportingPeriodEnd',
+    grouped_columns = ['ReportingPeriodId', 'Id', 'Period', 'PeriodStart', 'PeriodEnd',
                        'Accredited_spaces', 'OrganizationId_spaces', 'OrganizationName', 'FamilyFeesRevenue',
                        'RetroactiveC4KRevenue', 'C4KRevenue']
 
     combined_value_df = merged_df.groupby(by=grouped_columns)[['CDCRevenue', 'Capacity', 'UtilizedSpaces']].sum().reset_index()
 
+    # Add source and month
+    combined_value_df[MonthlyOrganizationRevenueReporting.ReportFundingSourceType.name] = CDC_SOURCE
+    combined_value_df[MonthlyOrganizationRevenueReporting.PeriodType.name] = MonthlyOrganizationRevenueReporting.MONTH
     # Rename columns
     rename_dict = {
-        'ReportingPeriodId': MonthlyOrganizationRevenueReporting.ReportingPeriodId.name,
         'Id': MonthlyOrganizationRevenueReporting.ReportId.name,
         'Period': MonthlyOrganizationRevenueReporting.Period.name,
-        'ReportingPeriodStart': MonthlyOrganizationRevenueReporting.ReportingPeriodStart.name,
-        'ReportingPeriodEnd': MonthlyOrganizationRevenueReporting.ReportingPeriodEnd.name,
+        'PeriodStart': MonthlyOrganizationRevenueReporting.PeriodStart.name,
+        'PeriodEnd': MonthlyOrganizationRevenueReporting.PeriodEnd.name,
         'Accredited_spaces': MonthlyOrganizationRevenueReporting.Accredited.name,
         'OrganizationId_spaces': MonthlyOrganizationRevenueReporting.OrganizationId.name,
         'OrganizationName': MonthlyOrganizationRevenueReporting.OrganizationName.name,
@@ -303,10 +317,6 @@ def get_reports(start_date: datetime.timestamp, end_date: datetime.timestamp) ->
     new_reports = pd.read_sql(sql=query, params={'start_date': start_date, 'end_date': end_date}, con=DATA_DB)
 
     return new_reports
-
-
-
-
 
 
 def replace_time_and_age_group_values(df: pd.DataFrame, time_col: str, age_group_col: str) -> pd.DataFrame:

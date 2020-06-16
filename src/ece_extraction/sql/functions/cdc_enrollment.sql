@@ -8,7 +8,6 @@ select
     Enrollment.Id as EnrollmentId,
     FamilyDeterminationId,
     Family.Id as FamilyId,
-    RPCDC.Id as ReportingPeriodId,
     Report.Id as ReportId,
     RPCDC.Period,
     RPCDC.PeriodStart,
