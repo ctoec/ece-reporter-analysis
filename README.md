@@ -61,9 +61,13 @@ as of Feb. 2020.
 
 - Identify parent organizations for sites in ECIS
 - Get rate and revenue numbers for historical CDC data and non-CDC Funding Sources
-- Determine logic for C4K fundings and start dates, these live in `Enrollment.AdditionalFundingSources`
+- Determine logic for C4K fundings and other fundings and start dates, these live in `Enrollment.AdditionalFundingSources`
 - Check for active users, check if they have aged out
 - Schedule meeting with Julie after 6/24
+- Deduplicate sites across ECIS and ECE
+- Site licence number in ECIS
+- Accredited and Title I flags for ECIS
+- Does Wraparound in ECIS directly correspond to part time? 
 
 ## Tests
 

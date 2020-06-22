@@ -1,9 +1,12 @@
 select
        Student.Student.Id as StudentId,
        Student.Enrollment.Id as EnrollmentId,
+       Student.Enrollment.EnrollmentDate,
+       Student.Enrollment.FacilityExitDate,
        Universal.Agency.Name,
        Universal.Agency.Id as FacilityId,
        Universal.Agency.Code,
+       Universal.Agency.ParentOrganization as OrganizationId,
        Student.Student.SASID,
        Student.StudentDetails.FirstName,
        Student.StudentDetails.MiddleName,
@@ -14,7 +17,7 @@ select
        RecentDetermination.NumberOfPeopleInHousehold,
        Enrollment.EnrollmentFunding.FundingType,
        string_agg(Student.Race.RaceCode,',') as RaceList,
-       string_agg(Enrollment.AdditionalFundingSources.AdditionalFundingType,',') as FundingTypes,
+       string_agg(Enrollment.AdditionalFundingSources.AdditionalFundingType,',') as AdditionalFundingTypes,
        trim(concat(RecentAddress.StreetNumber, ' ', RecentAddress.Address1, ' ', RecentAddress.Address2)) as Address,
        RecentAddress.Town,
        RecentAddress.Zip,
@@ -45,11 +48,11 @@ left join Student.EditableFieldValues as TownOfBirth ON
     Student.Student.Id = TownOfBirth.StudentId AND TownOfBirth.EditableFieldId = 5
 left join Enrollment.AdditionalFundingSources on EnrollmentFunding.EnrollmentId = Enrollment.AdditionalFundingSources.EnrollmentId
 WHERE StartDate <= :start_date AND EndDate >= :end_date
-GROUP BY RecentDetermination.AnnualFamilyIncome, Student.Enrollment.Id, Universal.Agency.Name, Universal.Agency.Id,
-         Universal.Agency.Code, Student.Student.SASID, Student.StudentDetails.FirstName, Student.StudentDetails.MiddleName,
-         Student.StudentDetails.LastName, Student.StudentDetails.Dob, Student.StudentDetails.Gender, Student.Student.Id,
-         RecentDetermination.NumberOfPeopleInHousehold, Enrollment.EnrollmentFunding.FundingType,
-         trim(concat(RecentAddress.StreetNumber, ' ', RecentAddress.Address1, ' ', RecentAddress.Address2)),
+GROUP BY Enrollment.EnrollmentFunding.FundingType, Student.Enrollment.Id, Student.Enrollment.EnrollmentDate,
+         Student.Enrollment.FacilityExitDate, Universal.Agency.Name, Universal.Agency.Id, Universal.Agency.Code,
+         Universal.Agency.ParentOrganization, Student.Student.SASID, Student.StudentDetails.FirstName,
+         Student.StudentDetails.MiddleName, Student.StudentDetails.LastName, Student.StudentDetails.Dob,
+         Student.StudentDetails.Gender, RecentDetermination.AnnualFamilyIncome, RecentDetermination.NumberOfPeopleInHousehold,
+         Student.Student.Id, trim(concat(RecentAddress.StreetNumber, ' ', RecentAddress.Address1, ' ', RecentAddress.Address2)),
          RecentAddress.Town, RecentAddress.Zip, RecentAddress.State, RecentDetermination.IndividualizedIEP,
-         RecentAddress.AddressType, BirthCertificate.Value, StateOfBirth.Value, TownOfBirth.Value,
-         Enrollment.EnrollmentFunding.SpaceType
+         RecentAddress.AddressType, BirthCertificate.Value, StateOfBirth.Value, TownOfBirth.Value, Enrollment.EnrollmentFunding.SpaceType

@@ -6,17 +6,21 @@ ANALYTIC_TABLE_BASE = declarative_base()
 
 ## TODO
 # Add in deduping of organizations and matching of sites and orgs
-CDC_SOURCE = 'CDC'
 
 
 class MonthlyEnrollmentReporting(ANALYTIC_TABLE_BASE):
+
+    # Standardized names
     MONTH = 'Month'
+    MALE = 'M'
+    FEMALE = 'F'
+
     __tablename__ = 'MonthlyEnrollmentReporting'
 
     SourceChildId = Column(mssql.VARCHAR(100), primary_key=True)
-    OrganizationId = Column(Integer)
+    SourceOrganizationId = Column(Integer)
     OrganizationName = Column(mssql.VARCHAR(100))
-    SiteId = Column(Integer)
+    SourceSiteId = Column(Integer)
     SiteName = Column(mssql.VARCHAR(100))
     FacilityCode = Column(Integer)
     EnrollmentId = Column(Integer, primary_key=True)
@@ -38,8 +42,10 @@ class MonthlyEnrollmentReporting(ANALYTIC_TABLE_BASE):
     ZipCode = Column(mssql.VARCHAR(None))
     State = Column(mssql.VARCHAR(None))
     CombinedAddress = Column(mssql.VARCHAR(None))
-    AgeGroupName = Column(mssql.VARCHAR(50))
-    TimeName = Column(mssql.VARCHAR(5))
+    CDCAgeGroupName = Column(mssql.VARCHAR(50))
+    CDCTimeName = Column(mssql.VARCHAR(50))
+    SpaceType = Column(mssql.VARCHAR(50))
+    SpaceTypeSubcategory = Column(mssql.VARCHAR(100))
     SiteLicenseNumber = Column(Integer)
     RegionName = Column(mssql.VARCHAR(50))
     TitleI = Column(mssql.BIT)
@@ -54,7 +60,7 @@ class MonthlyEnrollmentReporting(ANALYTIC_TABLE_BASE):
     White = Column(mssql.BIT)
     TwoOrMoreRaces = Column(mssql.BIT)
     HispanicOrLatinxEthnicity = Column(mssql.BIT)
-    Gender = Column(mssql.BIT)
+    Gender = Column(mssql.VARCHAR(25))
     Foster = Column(mssql.BIT)
     HasIEP = Column(mssql.BIT)
     Accredited = Column(mssql.BIT)
@@ -82,8 +88,9 @@ class MonthlyOrganizationSpaceReporting(ANALYTIC_TABLE_BASE):
     OrganizationId = Column(Integer, primary_key=True)
     OrganizationName = Column(mssql.VARCHAR(200))
     Capacity = Column(Integer)
-    TimeName = Column(mssql.VARCHAR(20), primary_key=True)
-    AgeGroupName = Column(mssql.VARCHAR(20), primary_key=True)
+    CDCTimeName = Column(mssql.VARCHAR(20), primary_key=True)
+    CDCAgeGroupName = Column(mssql.VARCHAR(20), primary_key=True)
+    SpaceType = Column(mssql.VARCHAR(50))
     UtilizedSpaces = Column(Integer)
     UtilizedTitleISpaces = Column(Integer)
     UtilizedNonTitle1Spaces = Column(Integer)

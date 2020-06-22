@@ -3,11 +3,12 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 from sqlalchemy.sql import text
+from analytic_tables.constants import CDC_SOURCE, FULL_TIME, PART_TIME, INFANT_TODDLER, PRESCHOOL, SCHOOL_AGE
 from resource_access.constants import ECE_DB_SECTION
 from resource_access.connections import get_mysql_connection
-from analytic_tables.conversion_functions import validate_and_convert_state
+from analytic_tables.conversion_functions import validate_and_convert_state, add_income_level, rename_and_drop_cols
 from analytic_tables.base_tables import MonthlyEnrollmentReporting, MonthlyOrganizationRevenueReporting, \
-    MonthlyOrganizationSpaceReporting, CDC_SOURCE
+    MonthlyOrganizationSpaceReporting
 
 ECE_DIR = os.path.dirname(__file__)
 ENROLLMENT_QUERY_FILE = ECE_DIR + '/sql/functions/cdc_enrollment.sql'
@@ -15,11 +16,17 @@ SPACES_QUERY_FILE = ECE_DIR + '/sql/functions/cdc_spaces.sql'
 REVENUE_QUERY_FILE = ECE_DIR + '/sql/functions/cdc_revenue.sql'
 
 RATES_FILE = ECE_DIR + '/data/Rates.csv'
-INCOME_LEVEL_FILE = ECE_DIR + '/data/IncomeLevels.csv'
 
 DATA_DB = get_mysql_connection(ECE_DB_SECTION)
 
-# TKTKTKTK penseive creds
+AGE_GROUP_MAPPING = {0: INFANT_TODDLER,
+                     1: PRESCHOOL,
+                     2: SCHOOL_AGE}
+
+TIME_MAPPING = {0: FULL_TIME,
+                1: PART_TIME}
+
+## TODO penseive creds
 # ANALYSIS_DB = get_mysql_connection(PENSIEVE_SECTION)
 
 
@@ -97,27 +104,10 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame) -> pd.DataFrame:
     # Set period type
     enrollment_df[MonthlyEnrollmentReporting.PeriodType.name] = MonthlyEnrollmentReporting.MONTH
 
-    # Set family size to 1 for foster, leave as number of people for other
-    family_size_col = np.where(enrollment_df[MonthlyEnrollmentReporting.Foster.name] == 1,
-                               1, enrollment_df['NumberOfPeople'])
-    enrollment_df[MonthlyEnrollmentReporting.FamilySize.name] = family_size_col
-
-    # Overwrite income to 0 for foster children
-    income_col = np.where(enrollment_df[MonthlyEnrollmentReporting.Foster.name] == 1,
-                          1, enrollment_df['Income'])
-    enrollment_df[MonthlyEnrollmentReporting.Income.name] = income_col
-
     # Add Income level booleans
-    income_level_df = pd.read_csv(INCOME_LEVEL_FILE)
-    enrollment_df = enrollment_df.merge(income_level_df,
-                                       left_on=MonthlyEnrollmentReporting.FamilySize.name,
-                                       right_on='NumberOfPeople')
-    enrollment_df[MonthlyEnrollmentReporting.SMI75.name] = enrollment_df['x75SMI']
-    enrollment_df[MonthlyEnrollmentReporting.Under75SMI.name] = np.where(enrollment_df.Income < enrollment_df.x75SMI,
-                                                                         1, 0)
-    enrollment_df[MonthlyEnrollmentReporting.FPL200.name] = enrollment_df['x200FPL']
-    enrollment_df[MonthlyEnrollmentReporting.Under200FPL.name] = np.where(enrollment_df.Income < enrollment_df.x200FPL,
-                                                                          1, 0)
+    enrollment_df = add_income_level(enrollment_df,
+                                     income_col=MonthlyEnrollmentReporting.Income.name,
+                                     family_size_col='NumberOfPeople')
 
     # Create a boolean column for children with two or more races
     race_cols = ['AmericanIndianOrAlaskaNative', 'Asian', 'BlackOrAfricanAmerican', 'NativeHawaiianOrPacificIslander', 'White']
@@ -142,12 +132,16 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame) -> pd.DataFrame:
 
     # Validate and formalize state names
     enrollment_df['State'] = enrollment_df['State'].apply(validate_and_convert_state)
+
+    # Standardize Gender
+    enrollment_df['Gender'] = enrollment_df['Gender'].apply({0: MonthlyEnrollmentReporting.MALE,
+                                                             1: MonthlyEnrollmentReporting.FEMALE})
     # Rename columns
     rename_dict = {
         'ChildId': MonthlyEnrollmentReporting.SourceChildId.name,
-        'OrganizationId': MonthlyEnrollmentReporting.OrganizationId.name,
+        'OrganizationId': MonthlyEnrollmentReporting.SourceOrganizationId.name,
         'OrganizationName': MonthlyEnrollmentReporting.OrganizationName.name,
-        'SiteId': MonthlyEnrollmentReporting.SiteId.name,
+        'SiteId': MonthlyEnrollmentReporting.SourceSiteId.name,
         'SiteName': MonthlyEnrollmentReporting.SiteName.name,
         'EnrollmentId': MonthlyEnrollmentReporting.EnrollmentId.name,
         'FamilyDeterminationId': MonthlyEnrollmentReporting.FamilyDeterminationId.name,
@@ -185,11 +179,8 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame) -> pd.DataFrame:
         'AddressLine': MonthlyEnrollmentReporting.CombinedAddress.name,
         'BirthCertificateId': MonthlyEnrollmentReporting.BirthCertificateId.name
     }
-    enrollment_df = enrollment_df.rename(columns=rename_dict)
 
-    # Remove non-existent columns
-    table_cols = MonthlyEnrollmentReporting.__table__.columns.keys()
-    enrollment_df = enrollment_df[list(set(enrollment_df.columns).intersection(table_cols))]
+    enrollment_df = rename_and_drop_cols(enrollment_df=enrollment_df, rename_dict=rename_dict)
 
     return enrollment_df
 
@@ -321,26 +312,14 @@ def get_reports(start_date: datetime.timestamp, end_date: datetime.timestamp) ->
 
 def replace_time_and_age_group_values(df: pd.DataFrame, time_col: str, age_group_col: str) -> pd.DataFrame:
     """
-    Renames values in time and age group columns with names found in the custom rates file
+    Renames values in time and age group columns with names found in the custom rates file and adds a general space
+    type column
     :param df: dataframe to transform
     :param time_col: time column name
     :param age_group_col: age group column name
     :return: dataframe with renamed values
     """
-    rates_df = pd.read_csv(RATES_FILE)
-    time_cols = rates_df[['TimeId', 'Time']]
-
-    # Build time lookup from rates file
-    time_dict = {}
-    for i, row_dict in time_cols.drop_duplicates().set_index('TimeId').to_dict(orient='index').items():
-        time_dict[i] = row_dict['Time']
-
-    age_group_cols = rates_df[['AgeGroupId', 'AgeGroup']]
-
-    # Build age group lookup from rates file
-    age_group_dict = {}
-    for i, row_dict in age_group_cols.drop_duplicates().set_index('AgeGroupId').to_dict(orient='index').items():
-        age_group_dict[i] = row_dict['AgeGroup']
-
-    df.replace({age_group_col: age_group_dict, time_col: time_dict}, inplace=True)
+    # Data mapping enum from ECE Reporter
+    df = df.replace({age_group_col: AGE_GROUP_MAPPING, time_col: TIME_MAPPING})
+    df[MonthlyEnrollmentReporting.SpaceType.name] = df[age_group_col] + '-' + df[time_col]
     return df
