@@ -1,6 +1,6 @@
 SELECT
     Report.Id as ReportId,
-    o.Id as OrganizationId,
+    o.Id as SourceOrganizationId,
     o.Name as OrganizationName,
     RP.Period,
     RP.PeriodStart,

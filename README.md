@@ -54,8 +54,36 @@ Static tables used in transforming data, this will need to updated as they chang
 ### ecis_extraction
 
 This pulls data from the ECIS system and inserts it in the analytical database with enrollments
-on a monthly basis historically. As of 2020-06-11 the data is from a snapshot of the ECIS database
+on a monthly basis historically. As of 2020-06-25 the data is from a snapshot of the ECIS database
 as of Feb. 2020.
+
+The steps of the ETL process are:
+1. Extract data from all programs (CDC, School Readiness, etc.) from ECIS 
+1. Transform Enrollment & Funding data
+    - Add period names including starts and ends
+    - Set Foster based on address type and update income to 0 and family size to 1 per OEC definitions
+    - Extract race and ethnicity data, adding a boolean for students with two or more races
+    - Validate and standardize state names
+    - Standardize gender to text (M,F currently)
+    - Extract birthdate
+    - Standardize funding sources
+    - Set up flag for C4K, note that there is no indication in the ECIS data on when C4K is active
+    - Set Region based on csv in data folder
+    - Extract Time and Age Group for CDC Funding
+1. Load transformed data to Monthly Enrollment table
+1. Group Enrollment/Funding data by Funding Type along with Time and Age Group for CDC to get counts for each type
+1. Rename columns of dataframe and load to Monthly Spaces, only Utilization numbers will be added
+1. Load Monthly Spaces to DB
+1. Transform Monthly Spaces dataframe to Monthly Revenue by combining to Funding Types
+1. Load Monthly Revenue to DB
+
+#### data
+
+- `towns.csv` maps towns to regions
+
+#### sql/functions/
+
+- `ecis_enrollment_extraction.sql` - raw SQL to pull data from ECIS database 
 
 #### TODOs
 
@@ -63,11 +91,12 @@ as of Feb. 2020.
 - Get rate and revenue numbers for historical CDC data and non-CDC Funding Sources
 - Determine logic for C4K fundings and other fundings and start dates, these live in `Enrollment.AdditionalFundingSources`
 - Check for active users, check if they have aged out
-- Schedule meeting with Julie after 6/24
+- Schedule meeting with Julie after 6/24/2020
 - Deduplicate sites across ECIS and ECE
 - Site licence number in ECIS
 - Accredited and Title I flags for ECIS
 - Does Wraparound in ECIS directly correspond to part time? 
+- What time field should be used for active month? (Enrollment Funding has some 1900 dates)
 
 ## Tests
 

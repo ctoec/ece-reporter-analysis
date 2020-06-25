@@ -1,172 +1,172 @@
 town,region
-Ashford,e
-Bozrah,e
-Brooklyn,e
-Canterbury,e
-Chaplin,e
-Colchester,e
-Columbia,e
-Coventry,e
-East Lyme,e
-Eastford,e
-Franklin,e
-Griswold,e
-Groton,e
-Hampton,e
-Killingly,e
-Lebanon,e
-Ledyard,e
-Lisbon,e
-Mansfield,e
-Montville,e
-New London,e
-North Stonington,e
-Norwich,e
-Plainfield,e
-Pomfret,e
-Preston,e
-Putnam,e
-Salem,e
-Scotland,e
-Sprague,e
-Sterling,e
-Stonington,e
-Thompson,e
-Union,e
-Voluntown,e
-Waterford,e
-Willington,e
-Windham,e
-Woodstock,e
-Andover,nc
-Avon,nc
-Berlin,nc
-Bloomfield,nc
-Bolton,nc
-Bristol,nc
-Burlington,nc
-Canton,nc
-East Granby,nc
-East Hartford,nc
-East Windsor,nc
-Ellington,nc
-Enfield,nc
-Farmington,nc
-Glastonbury,nc
-Granby,nc
-Hartford,nc
-Hebron,nc
-Manchester,nc
-Marlborough,nc
-New Britain,nc
-Newington,nc
-Plainville,nc
-Plymouth,nc
-Rocky Hill,nc
-Simsbury,nc
-Somers,nc
-Southington,nc
-South Windsor,nc
-Stafford,nc
-Suffield,nc
-Tolland,nc
-Vernon,nc
-West Hartford,nc
-Wethersfield,nc
-Windsor,nc
-Windsor Locks,nc
-Barkhamsted,nw
-Beacon Falls,nw
-Bethel,nw
-Bethlehem,nw
-Bridgewater,nw
-Brookfield,nw
-Canaan,nw
-Cheshire,nw
-Colebrook,nw
-Cornwall,nw
-Danbury,nw
-Goshen,nw
-Hartland,nw
-Harwinton,nw
-Kent,nw
-Litchfield,nw
-Middlebury,nw
-Morris,nw
-Naugatuck,nw
-New Fairfield,nw
-New Hartford,nw
-New Milford,nw
-Newtown,nw
-Norfolk,nw
-North Canaan,nw
-Oxford,nw
-Prospect,nw
-Redding,nw
-Ridgefield,nw
-Roxbury,nw
-Salisbury,nw
-Sandy Hook,nw
-Sharon,nw
-Sherman,nw
-Southbury,nw
-Thomaston,nw
-Torrington,nw
-Warren,nw
-Washington,nw
-Waterbury,nw
-Watertown,nw
-Winchester,nw
-Wolcott,nw
-Woodbury,nw
-Ansonia,sc
-Bethany,sc
-Branford,sc
-Chester,sc
-Clinton,sc
-Cromwell,sc
-Deep River,sc
-Derby,sc
-Durham,sc
-East,sc
-Haddam,sc
-East Hampton,sc
-East Haven,sc
-Essex,sc
-Guilford,sc
-Haddam,sc
-Hamden,sc
-Killingworth,sc
-Lyme,sc
-Madison,sc
-Meriden,sc
-Middletown,sc
-Middlefield,sc
-Milford,sc
-New Haven,sc
-North Branford,sc
-North Haven,sc
-Old Lyme,sc
-Old Saybrook,sc
-Orange,sc
-Portland,sc
-Seymour,sc
-Shelton,sc
-Wallingford,sc
-West Haven,sc
-Westbrook,sc
-Woodbridge,sc
-Bridgeport,sw
-Darien,sw
-Easton,sw
-Fairfield,sw
-Greenwich,sw
-Monroe,sw
-New Canaan,sw
-Norwalk,sw
-Stamford,sw
-Stratford,sw
-Trumbull,sw
-Weston,sw
-Westport,sw
-Wilton,sw
+Ashford,0
+Bozrah,0
+Brooklyn,0
+Canterbury,0
+Chaplin,0
+Colchester,0
+Columbia,0
+Coventry,0
+East Lyme,0
+Eastford,0
+Franklin,0
+Griswold,0
+Groton,0
+Hampton,0
+Killingly,0
+Lebanon,0
+Ledyard,0
+Lisbon,0
+Mansfield,0
+Montville,0
+New London,0
+North Stonington,0
+Norwich,0
+Plainfield,0
+Pomfret,0
+Preston,0
+Putnam,0
+Salem,0
+Scotland,0
+Sprague,0
+Sterling,0
+Stonington,0
+Thompson,0
+Union,0
+Voluntown,0
+Waterford,0
+Willington,0
+Windham,0
+Woodstock,0
+Andover,1
+Avon,1
+Berlin,1
+Bloomfield,1
+Bolton,1
+Bristol,1
+Burlington,1
+Canton,1
+East Granby,1
+East Hartford,1
+East Windsor,1
+Ellington,1
+Enfield,1
+Farmington,1
+Glastonbury,1
+Granby,1
+Hartford,1
+Hebron,1
+Manchester,1
+Marlborough,1
+New Britain,1
+Newington,1
+Plainville,1
+Plymouth,1
+Rocky Hill,1
+Simsbury,1
+Somers,1
+Southington,1
+South Windsor,1
+Stafford,1
+Suffield,1
+Tolland,1
+Vernon,1
+West Hartford,1
+Wethersfield,1
+Windsor,1
+Windsor Locks,1
+Barkhamsted,2
+Beacon Falls,2
+Bethel,2
+Bethlehem,2
+Bridgewater,2
+Brookfield,2
+Canaan,2
+Cheshire,2
+Colebrook,2
+Cornwall,2
+Danbury,2
+Goshen,2
+Hartland,2
+Harwinton,2
+Kent,2
+Litchfield,2
+Middlebury,2
+Morris,2
+Naugatuck,2
+New Fairfield,2
+New Hartford,2
+New Milford,2
+Newtown,2
+Norfolk,2
+North Canaan,2
+Oxford,2
+Prospect,2
+Redding,2
+Ridgefield,2
+Roxbury,2
+Salisbury,2
+Sandy Hook,2
+Sharon,2
+Sherman,2
+Southbury,2
+Thomaston,2
+Torrington,2
+Warren,2
+Washington,2
+Waterbury,2
+Watertown,2
+Winchester,2
+Wolcott,2
+Woodbury,2
+Ansonia,3
+Bethany,3
+Branford,3
+Chester,3
+Clinton,3
+Cromwell,3
+Deep River,3
+Derby,3
+Durham,3
+East,3
+Haddam,3
+East Hampton,3
+East Haven,3
+Essex,3
+Guilford,3
+Haddam,3
+Hamden,3
+Killingworth,3
+Lyme,3
+Madison,3
+Meriden,3
+Middletown,3
+Middlefield,3
+Milford,3
+New Haven,3
+North Branford,3
+North Haven,3
+Old Lyme,3
+Old Saybrook,3
+Orange,3
+Portland,3
+Seymour,3
+Shelton,3
+Wallingford,3
+West Haven,3
+Westbrook,3
+Woodbridge,3
+Bridgeport,4
+Darien,4
+Easton,4
+Fairfield,4
+Greenwich,4
+Monroe,4
+New Canaan,4
+Norwalk,4
+Stamford,4
+Stratford,4
+Trumbull,4
+Weston,4
+Westport,4
+Wilton,4

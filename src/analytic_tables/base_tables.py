@@ -1,6 +1,7 @@
+from datetime import datetime
 from sqlalchemy.dialects import mssql
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, DateTime, Numeric, String
+from sqlalchemy import Column, Integer, DateTime, Numeric, String, UniqueConstraint
 
 ANALYTIC_TABLE_BASE = declarative_base()
 
@@ -17,18 +18,20 @@ class MonthlyEnrollmentReporting(ANALYTIC_TABLE_BASE):
 
     __tablename__ = 'MonthlyEnrollmentReporting'
 
-    SourceChildId = Column(mssql.VARCHAR(100), primary_key=True)
+    Id = Column(Integer, primary_key=True)
+    SourceSystem = Column(mssql.VARCHAR(100))
+    SourceChildId = Column(mssql.VARCHAR(100))
     SourceOrganizationId = Column(Integer)
     OrganizationName = Column(mssql.VARCHAR(100))
     SourceSiteId = Column(Integer)
     SiteName = Column(mssql.VARCHAR(100))
     FacilityCode = Column(Integer)
-    EnrollmentId = Column(Integer, primary_key=True)
+    EnrollmentId = Column(Integer)
     FamilyDeterminationId = Column(Integer)
     FamilyId = Column(Integer)
     ReportId = Column(Integer)
-    Period = Column(DateTime, primary_key=True)
-    PeriodType = Column(mssql.VARCHAR(25), primary_key=True)
+    Period = Column(DateTime)
+    PeriodType = Column(mssql.VARCHAR(25))
     PeriodStart = Column(DateTime)
     PeriodEnd = Column(DateTime)
     Sasid = Column(mssql.VARCHAR(None))
@@ -38,6 +41,7 @@ class MonthlyEnrollmentReporting(ANALYTIC_TABLE_BASE):
     LastName = Column(mssql.VARCHAR(250))
     MiddleName = Column(mssql.VARCHAR(250))
     FirstName = Column(mssql.VARCHAR(250))
+    BirthDate = Column(DateTime)
     Town = Column(mssql.VARCHAR(None))
     ZipCode = Column(mssql.VARCHAR(None))
     State = Column(mssql.VARCHAR(None))
@@ -66,47 +70,56 @@ class MonthlyEnrollmentReporting(ANALYTIC_TABLE_BASE):
     Accredited = Column(mssql.BIT)
     Rate = Column(mssql.DECIMAL(18, 2))
     CDCRevenue = Column(mssql.DECIMAL(18, 2))
-    FundingSource = Column(mssql.VARCHAR(50), primary_key=True)
+    FundingSource = Column(mssql.VARCHAR(50))
     SMI75 = Column(Integer)
     FPL200 = Column(Integer)
     Under75SMI = Column(mssql.BIT)
     Under200FPL = Column(mssql.BIT)
     ActiveC4K = Column(mssql.BIT)
+    TimeInserted = Column(DateTime, default=datetime.now())
+    TimeUpdated = Column(DateTime, default=datetime.now(), onupdate=datetime.now())
+    UniqueConstraint('SourceChildId', 'EnrollmentId', 'Period', 'PeriodType', 'FundingSource', name='unique_enroll_idx_1')
 
 
 class MonthlyOrganizationSpaceReporting(ANALYTIC_TABLE_BASE):
     MONTH = 'Month'
     __tablename__ = 'MonthlyOrganizationSpaceReporting'
 
+    Id = Column(Integer, primary_key=True)
     ReportId = Column(Integer)
-    Period = Column(mssql.VARCHAR(25), primary_key=True)
-    PeriodType = Column(mssql.VARCHAR(25), primary_key=True)
+    Period = Column(mssql.VARCHAR(25))
+    PeriodType = Column(mssql.VARCHAR(25))
     PeriodStart = Column(DateTime)
     PeriodEnd = Column(DateTime)
     Accredited = Column(mssql.BIT)
-    ReportFundingSourceType = Column(mssql.VARCHAR(50), primary_key=True)
-    OrganizationId = Column(Integer, primary_key=True)
+    ReportFundingSourceType = Column(mssql.VARCHAR(50))
+    SourceOrganizationId = Column(Integer)
     OrganizationName = Column(mssql.VARCHAR(200))
     Capacity = Column(Integer)
-    CDCTimeName = Column(mssql.VARCHAR(20), primary_key=True)
-    CDCAgeGroupName = Column(mssql.VARCHAR(20), primary_key=True)
+    CDCTimeName = Column(mssql.VARCHAR(20))
+    CDCAgeGroupName = Column(mssql.VARCHAR(20))
     SpaceType = Column(mssql.VARCHAR(50))
     UtilizedSpaces = Column(Integer)
     UtilizedTitleISpaces = Column(Integer)
     UtilizedNonTitle1Spaces = Column(Integer)
     CDCRevenue = Column(mssql.DECIMAL(18, 2))
+    TimeInserted = Column(DateTime, default=datetime.now())
+    TimeUpdated = Column(DateTime, default=datetime.now(), onupdate=datetime.now())
+    UniqueConstraint('Period', 'PeriodType', 'SourceOrganizationId', 'ReportFundingSourceType', 'SpaceType', name='unique_space_idx_1')
 
 
 class MonthlyOrganizationRevenueReporting(ANALYTIC_TABLE_BASE):
     MONTH = 'Month'
     __tablename__ = 'MonthlyOrganizationRevenueReporting'
+
+    Id = Column(Integer, primary_key=True)
     ReportId = Column(Integer)
-    Period = Column(DateTime, primary_key=True)
-    PeriodType = Column(mssql.VARCHAR(25), primary_key=True)
+    Period = Column(DateTime)
+    PeriodType = Column(mssql.VARCHAR(25))
     PeriodStart = Column(DateTime)
     PeriodEnd = Column(DateTime)
     Accredited = Column(mssql.BIT)
-    OrganizationId = Column(Integer, primary_key=True)
+    SourceOrganizationId = Column(Integer)
     OrganizationName = Column(String)
     RetroactiveC4KRevenue = Column(mssql.BIT)
     FamilyFeesRevenue = Column(mssql.DECIMAL(18, 2))
@@ -114,4 +127,7 @@ class MonthlyOrganizationRevenueReporting(ANALYTIC_TABLE_BASE):
     CDCRevenue = Column(mssql.DECIMAL(18, 2))
     TotalCapacity = Column(Integer)
     UtilizedSpaces = Column(Integer)
-    ReportFundingSourceType = Column(mssql.VARCHAR(50), primary_key=True)
+    ReportFundingSourceType = Column(mssql.VARCHAR(50))
+    TimeInserted = Column(DateTime, default=datetime.now())
+    TimeUpdated = Column(DateTime, default=datetime.now(), onupdate=datetime.now())
+    UniqueConstraint('Period', 'PeriodType', 'SourceOrganizationId', 'ReportFundingSourceType', name='unique_org_rev_idx_1')

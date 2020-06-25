@@ -9,6 +9,10 @@ PDG_STATE = 'PDG State'
 PRIVATE_PAY = 'Private Pay'
 SCHOOL_READINESS_COMPETITIVE = 'School Readiness – Competitive'
 
+# SOURCE SYSTEMS
+ECE_REPORTER = 'ECE Reporter'
+HISTORICAL_ECIS = 'Historical ECIS Snapshot'
+
 # Canonical Times
 FULL_TIME = 'FT'
 PART_TIME = 'PT'

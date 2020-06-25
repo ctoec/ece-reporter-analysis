@@ -11,6 +11,11 @@ INVALID_STATE = None
 SOURCE_DIR = os.path.dirname(__file__)
 INCOME_LEVEL_FILE = SOURCE_DIR + '/data/IncomeLevels.csv'
 
+ECE_REGION_MAPPING = {0: 'East',
+                      1: 'North Central',
+                      2: 'Northwest',
+                      3: 'South Central',
+                      4: 'Southwest'}
 
 def get_beginning_and_end_of_month(date: datetime.date):
     """
@@ -76,6 +81,7 @@ def add_income_level(enrollment_df: pd.DataFrame, family_size_col: str, income_c
     booleans
     """
     income_level_df = pd.read_csv(INCOME_LEVEL_FILE)
+    income_level_df['NumberOfPeople'] = income_level_df['NumberOfPeople'].astype(object)
     enrollment_df = enrollment_df.merge(income_level_df,
                                         left_on=family_size_col,
                                         right_on='NumberOfPeople',
@@ -90,14 +96,14 @@ def add_income_level(enrollment_df: pd.DataFrame, family_size_col: str, income_c
     return enrollment_df
 
 
-def rename_and_drop_cols(enrollment_df: pd.DataFrame, rename_dict: dict):
+def rename_and_drop_cols(df: pd.DataFrame, rename_dict: dict, table_cols: list) -> pd.DataFrame:
     """
     Rename columns in the given enrollment df and remove all columns that aren't in the Enrollment table
-    :param enrollment_df: dataframe with enrollments
+    :param df: dataframe
     :param rename_dict: Dictionary with mapping of input names to db column names
+    :param table_cols: list of columns that should remain in the table
     :return: dataframe ready to load into Enrollment Table
     """
-    enrollment_df = enrollment_df.rename(columns=rename_dict)
-    table_cols = MonthlyEnrollmentReporting.__table__.columns.keys()
-    enrollment_df = enrollment_df[list(set(enrollment_df.columns).intersection(table_cols))]
-    return enrollment_df
+    renamed_df = df.rename(columns=rename_dict)
+    reduced_renamed_df = renamed_df[list(set(renamed_df.columns).intersection(table_cols))]
+    return reduced_renamed_df

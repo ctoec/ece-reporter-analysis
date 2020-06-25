@@ -5,7 +5,7 @@ SELECT
     MOSR.ReportingPeriodStart,
     MOSR.ReportingPeriodEnd,
     MOSR.Accredited,
-    MOSR.OrganizationId,
+    MOSR.SourceOrganizationId,
     MOSR.OrganizationName,
     R.RetroactiveC4KRevenue,
     R.FamilyFeesRevenue,
