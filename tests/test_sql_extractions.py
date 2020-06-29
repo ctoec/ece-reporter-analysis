@@ -34,7 +34,7 @@ class TestSQLExtractionFromDummy(unittest.TestCase):
 		Check that summary tables are filled with expected data for capacity
 		"""
 		# Get capacity numbers from summary tables
-		query = 'select TimeName, AgeGroupName, Capacity from MonthlyOrganizationSpaceReporting where ReportId = 2292'
+		query = 'select CDCTimeName, CDCAgeGroupName, Capacity from MonthlyOrganizationSpaceReporting where ReportId = 2292'
 		df = pd.read_sql(sql=query, con=self.conn, index_col=['TimeName', 'AgeGroupName'])
 		lookup_dict = df.to_dict()['Capacity']
 
@@ -47,7 +47,7 @@ class TestSQLExtractionFromDummy(unittest.TestCase):
 
 	def test_space_utilization(self):
 
-		query = 'select TimeName, AgeGroupName, UtilizedSpaces, UtilizedNonTitle1Spaces, UtilizedTitleISpaces' \
+		query = 'select CDCTimeName, CDCAgeGroupName, UtilizedSpaces, UtilizedNonTitle1Spaces, UtilizedTitleISpaces' \
 				' from MonthlyOrganizationSpaceReporting where ReportId = 2292'
 		df = pd.read_sql(sql=query, con=self.conn, index_col=['TimeName', 'AgeGroupName'])
 		lookup_dict = df.to_dict()
@@ -80,10 +80,10 @@ class TestSQLExtractionFromDummy(unittest.TestCase):
 		self.assertEqual(float(revenue), 7481.95)
 
 		# Test that breakdown of revenue is correct
-		query = 'SELECT AgeGroupName,TimeName, Sum(CDCRevenue) AS Revenue ' \
+		query = 'SELECT CDCAgeGroupName,CDCTimeName, Sum(CDCRevenue) AS Revenue ' \
 				'FROM MonthlyEnrollmentReporting ' \
 				'where ReportId = 2292 ' \
-				'GROUP BY AgeGroupName, TimeName'
+				'GROUP BY CDCAgeGroupName, CDCTimeName'
 
 		df = pd.read_sql(sql=query, con=self.conn, index_col=['AgeGroupName', 'TimeName'])
 		lookup_dict = df.to_dict()['Revenue']

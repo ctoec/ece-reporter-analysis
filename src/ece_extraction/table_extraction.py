@@ -29,15 +29,16 @@ TIME_MAPPING = {0: FULL_TIME,
                 1: PART_TIME}
 
 
-def process_report(report: pd.Series) -> None:
+def process_report(report: pd.Series, current_funding: bool = False) -> None:
     """
     Pulls all data associated with a report. Datasets pulled are enrollments, spaces and revenue. Data is transformed,
     cleaned and loaded to analytics tables
     :param report: pandas row with metadata about a Report
+    :param current_funding: whether to use current funding data or historical data
     :return: None, data is loaded to the DB
     """
     # Pull raw enrollment data and transform it
-    raw_enrollment_df = get_raw_enrollments(report)
+    raw_enrollment_df = get_raw_enrollments(report, current_funding=current_funding)
     transformed_enrollment_df = transform_enrollment_df(raw_enrollment_df)
 
     # Write enrollment to analytics DB
@@ -64,29 +65,31 @@ def process_report(report: pd.Series) -> None:
     print("Revenue loaded")
 
 
-def add_new_reports(start_date: datetime.timestamp, end_date: datetime.timestamp):
+def add_new_reports(start_date: datetime.timestamp, end_date: datetime.timestamp, current_funding: bool = False):
     """
     Add all new reports since called start date to analytical tables
     :param start_date: timestamp, reports after this time, inclusive of the start time will be added
     :param end_date: timestamp, all reports before this time and after start date will be added
+    :param current_funding: whether to use current funding data or historical data
     :return: None
     """
     report_df = get_reports(start_date, end_date)
     print(f"Processing {len(report_df)} report(s)")
     for _, report in report_df.iterrows():
         print(f"Report ID {report.Id} processing")
-        process_report(report)
+        process_report(report, current_funding)
         print(f"Report ID {report.Id} done with processing")
 
 
-def get_raw_enrollments(report: pd.Series) -> pd.DataFrame:
+def get_raw_enrollments(report: pd.Series, current_funding: bool = False) -> pd.DataFrame:
     """
     Call cdc_enrollment.sql script with report metadata (SubmittedAt and Id) to get related Enrollments
     :param report: pandas series associated with a single report, Id and SubmittedAt are included
+    :param current_funding: whether to use current funding data or historical data
     :return: dataframe with all enrollments associated with a report
     """
-
-    parameters = {'system_time': report.SubmittedAt, 'report_id': report.Id}
+    funding_system_time = datetime.now() if current_funding else report.SubmittedAt
+    parameters = {'system_time': report.SubmittedAt, 'report_id': report.Id, 'funding_system_time': funding_system_time}
     df = pd.read_sql(sql=text(open(ENROLLMENT_QUERY_FILE).read()), params=parameters, con=DATA_DB)
 
     return df
