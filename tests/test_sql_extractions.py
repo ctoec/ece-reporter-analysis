@@ -35,7 +35,7 @@ class TestSQLExtractionFromDummy(unittest.TestCase):
 		"""
 		# Get capacity numbers from summary tables
 		query = 'select CDCTimeName, CDCAgeGroupName, Capacity from MonthlyOrganizationSpaceReporting where ReportId = 2292'
-		df = pd.read_sql(sql=query, con=self.conn, index_col=['TimeName', 'AgeGroupName'])
+		df = pd.read_sql(sql=query, con=self.conn, index_col=['CDCTimeName', 'CDCAgeGroupName'])
 		lookup_dict = df.to_dict()['Capacity']
 
 		# Check that numbers match expected numbers from SQL inserts
@@ -49,7 +49,7 @@ class TestSQLExtractionFromDummy(unittest.TestCase):
 
 		query = 'select CDCTimeName, CDCAgeGroupName, UtilizedSpaces, UtilizedNonTitle1Spaces, UtilizedTitleISpaces' \
 				' from MonthlyOrganizationSpaceReporting where ReportId = 2292'
-		df = pd.read_sql(sql=query, con=self.conn, index_col=['TimeName', 'AgeGroupName'])
+		df = pd.read_sql(sql=query, con=self.conn, index_col=['CDCTimeName', 'CDCAgeGroupName'])
 		lookup_dict = df.to_dict()
 
 		# Check summed utilized numbers
@@ -85,7 +85,7 @@ class TestSQLExtractionFromDummy(unittest.TestCase):
 				'where ReportId = 2292 ' \
 				'GROUP BY CDCAgeGroupName, CDCTimeName'
 
-		df = pd.read_sql(sql=query, con=self.conn, index_col=['AgeGroupName', 'TimeName'])
+		df = pd.read_sql(sql=query, con=self.conn, index_col=['CDCAgeGroupName', 'CDCTimeName'])
 		lookup_dict = df.to_dict()['Revenue']
 		# Check breakdown of revenue by type
 		self.assertEqual(5205.10, float(lookup_dict[(INFANT, FT)]))
@@ -98,7 +98,7 @@ class TestSQLExtractionFromDummy(unittest.TestCase):
 
 		query = """
 		SELECT     FamilySize,
-        COUNT(DISTINCT(ChildId)) AS NumberOfFamilies
+        COUNT(DISTINCT(SourceChildId)) AS NumberOfFamilies
 		FROM MonthlyEnrollmentReporting
 		WHERE Under200FPL = 1
 		GROUP BY FamilySize"""
