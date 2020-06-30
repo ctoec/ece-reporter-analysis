@@ -119,6 +119,7 @@ class MonthlyOrganizationSpaceReporting(ANALYTIC_TABLE_BASE):
 
 class MonthlyOrganizationRevenueReporting(ANALYTIC_TABLE_BASE):
     MONTH = 'Month'
+    CDC_SOURCE = 'CDC'
     __tablename__ = 'MonthlyOrganizationRevenueReporting'
 
     Id = Column(Integer, primary_key=True)

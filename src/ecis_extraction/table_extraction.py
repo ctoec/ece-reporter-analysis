@@ -149,7 +149,7 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame, month_start: datetime.d
     enrollment_df[MonthlyEnrollmentReporting.RegionName.name] = enrollment_df['Town'].apply(get_region)
 
     # Add Time and Age Group for CDC Funding
-    cdc_rows = enrollment_df.FundingSource == constants.CDC_SOURCE
+    cdc_rows = enrollment_df.FundingSource == MonthlyEnrollmentReporting.CDC_SOURCE
     enrollment_df.loc[cdc_rows, MonthlyEnrollmentReporting.CDCTimeName.name] = enrollment_df.loc[
         cdc_rows].SpaceType.apply(extract_time_from_ECIS)
     enrollment_df.loc[cdc_rows, MonthlyEnrollmentReporting.CDCAgeGroupName.name] = enrollment_df.loc[

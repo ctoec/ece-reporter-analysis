@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 from sqlalchemy.sql import text
-from analytic_tables.constants import CDC_SOURCE, FULL_TIME, PART_TIME, INFANT_TODDLER, PRESCHOOL, SCHOOL_AGE, ECE_REPORTER
+from analytic_tables.constants import FULL_TIME, PART_TIME, INFANT_TODDLER, PRESCHOOL, SCHOOL_AGE, ECE_REPORTER
 from resource_access.constants import ECE_DB_SECTION, PENSIEVE_DB_SECTION
 from resource_access.connections import get_mysql_connection
 from analytic_tables.conversion_functions import validate_and_convert_state, add_income_level, rename_and_drop_cols, \
@@ -101,7 +101,7 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame) -> pd.DataFrame:
     if sum(enrollment_df['Source'] != 0) != 0:
         raise Exception("Non-CDC Source included in data pull")
     # Set all sources ID'd as 0 as CDC
-    enrollment_df[MonthlyEnrollmentReporting.FundingSource.name] = CDC_SOURCE
+    enrollment_df[MonthlyEnrollmentReporting.FundingSource.name] = MonthlyEnrollmentReporting.CDC_SOURCE
     enrollment_df[MonthlyEnrollmentReporting.SourceSystem.name] = ECE_REPORTER
 
     # Set period type
@@ -282,7 +282,7 @@ def transform_revenue_df(raw_revenue_df: pd.DataFrame, transformed_space_df: pd.
     combined_value_df = merged_df.groupby(by=grouped_columns)[['CDCRevenue', 'Capacity', 'UtilizedSpaces']].sum().reset_index()
 
     # Add source and month
-    combined_value_df[MonthlyOrganizationRevenueReporting.ReportFundingSourceType.name] = CDC_SOURCE
+    combined_value_df[MonthlyOrganizationRevenueReporting.ReportFundingSourceType.name] = MonthlyOrganizationRevenueReporting.CDC_SOURCE
     combined_value_df[MonthlyOrganizationRevenueReporting.PeriodType.name] = MonthlyOrganizationRevenueReporting.MONTH
     # Rename columns
     rename_dict = {
