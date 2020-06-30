@@ -15,6 +15,15 @@ class MonthlyEnrollmentReporting(ANALYTIC_TABLE_BASE):
     MONTH = 'Month'
     MALE = 'M'
     FEMALE = 'F'
+    CDC_SOURCE = 'CDC'
+    STATE_HEAD_START = 'State Head Start'
+    SMART_START = 'Smart Start'
+    HEAD_START = 'Head Start'
+    PDG_FEDERAL = 'PDG Federal'
+    SCHOOL_READINESS_PRIORITY = 'School Readiness - Priority'
+    PDG_STATE = 'PDG State'
+    PRIVATE_PAY = 'Private Pay'
+    SCHOOL_READINESS_COMPETITIVE = 'School Readiness – Competitive'
 
     __tablename__ = 'MonthlyEnrollmentReporting'
 

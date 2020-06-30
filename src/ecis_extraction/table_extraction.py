@@ -19,7 +19,15 @@ ECIS_DIR = os.path.dirname(__file__)
 ENROLLMENT_QUERY_FILE = ECIS_DIR + '/sql/functions/ecis_enrollment_extraction.sql'
 TOWN_REGION_LOOKUP = ECIS_DIR + '/data/towns.csv'
 
+# ECIS Age Groups
+ECIS_PRE_SCHOOL = 'PS'
+ECIS_INFANT_TODDLER = 'IT'
 DUMMY_NULL = 'NULL VALUE'
+
+# ECIS times
+ECIS_FULL_TIME = 'F/T'
+ECIS_WRAP_AROUND = 'WA'
+ECIS_SCHOOL_AGE = 'School Age'
 
 RACE_ETHNICITY_LIST = [('Hispanic or Latino of any race', MonthlyEnrollmentReporting.HispanicOrLatinxEthnicity.name),
                        ('Black or African American', MonthlyEnrollmentReporting.BlackOrAfricanAmerican.name),
@@ -30,15 +38,15 @@ RACE_ETHNICITY_LIST = [('Hispanic or Latino of any race', MonthlyEnrollmentRepor
                        ]
 
 ECIS_CHILD_DAY_CARE = 'Child Day Care'
-FUNDING_MAPPING = {ECIS_CHILD_DAY_CARE: constants.CDC_SOURCE,
-                   'Head Start – State Supplement': constants.STATE_HEAD_START,
-                   'Smart Start (SS)': constants.SMART_START,
-                   'Head Start/Early Head Start': constants.HEAD_START,
-                   'PDG-Federal': constants.PDG_FEDERAL,
-                   'School Readiness – Priority': constants.SCHOOL_READINESS_PRIORITY,
-                   'PDG-State Quality Enhancement': constants.PDG_STATE,
-                   'Private Pay': constants.PRIVATE_PAY,
-                   'School Readiness – Competitive': constants.SCHOOL_READINESS_COMPETITIVE
+FUNDING_MAPPING = {ECIS_CHILD_DAY_CARE: MonthlyEnrollmentReporting.CDC_SOURCE,
+                   'Head Start – State Supplement': MonthlyEnrollmentReporting.STATE_HEAD_START,
+                   'Smart Start (SS)': MonthlyEnrollmentReporting.SMART_START,
+                   'Head Start/Early Head Start': MonthlyEnrollmentReporting.HEAD_START,
+                   'PDG-Federal': MonthlyEnrollmentReporting.PDG_FEDERAL,
+                   'School Readiness – Priority': MonthlyEnrollmentReporting.SCHOOL_READINESS_PRIORITY,
+                   'PDG-State Quality Enhancement': MonthlyEnrollmentReporting.PDG_STATE,
+                   'Private Pay': MonthlyEnrollmentReporting.PRIVATE_PAY,
+                   'School Readiness – Competitive': MonthlyEnrollmentReporting.SCHOOL_READINESS_COMPETITIVE
                    }
 
 
@@ -282,9 +290,9 @@ def extract_age_group_from_ECIS(space_type: str) -> str:
     :param space_type: space type from ECIS
     :return: canonical age group name
     """
-    if constants.ECIS_INFANT_TODDLER in space_type:
+    if ECIS_INFANT_TODDLER in space_type:
         return constants.INFANT_TODDLER
-    if constants.ECIS_PRE_SCHOOL in space_type:
+    if ECIS_PRE_SCHOOL in space_type:
         return constants.PRESCHOOL
     if constants.ECIS_SCHOOL_AGE in space_type:
         return constants.SCHOOL_AGE

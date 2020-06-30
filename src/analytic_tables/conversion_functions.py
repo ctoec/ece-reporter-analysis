@@ -46,7 +46,7 @@ def validate_and_convert_state(state_string: str) -> str:
         state_dict[base_abbr.lower()] = base_abbr
         state_dict[state_obj.name.lower()] = base_abbr
 
-    # Match lower version of input with dictionary to get valid abbreviation,
+    # Match lower case version of input with dictionary to get valid abbreviation,
     # returning None if it is not in the dictionary
     found_state = state_dict.get(state_string.lower(), INVALID_STATE)
     return found_state

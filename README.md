@@ -72,7 +72,7 @@ The steps of the ETL process are:
     - Extract Time and Age Group for CDC Funding
 1. Load transformed data to Monthly Enrollment table
 1. Group Enrollment/Funding data by Funding Type along with Time and Age Group for CDC to get counts for each type
-1. Rename columns of dataframe and load to Monthly Spaces, only Utilization numbers will be added
+1. Rename columns of dataframe and load to Monthly Spaces, only Utilization numbers will be added, Capacity is not included since ECIS doesn't track it. 
 1. Load Monthly Spaces to DB
 1. Transform Monthly Spaces dataframe to Monthly Revenue by combining to Funding Types
 1. Load Monthly Revenue to DB
@@ -91,7 +91,6 @@ The steps of the ETL process are:
 - Get rate and revenue numbers for historical CDC data and non-CDC Funding Sources
 - Determine logic for C4K fundings and other fundings and start dates, these live in `Enrollment.AdditionalFundingSources`
 - Check for active users, check if they have aged out
-- Schedule meeting with Julie after 6/24/2020
 - Deduplicate sites across ECIS and ECE
 - Site licence number in ECIS
 - Accredited and Title I flags for ECIS
