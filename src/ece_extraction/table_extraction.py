@@ -7,7 +7,7 @@ from analytic_tables.constants import CDC_SOURCE, FULL_TIME, PART_TIME, INFANT_T
 from resource_access.constants import ECE_DB_SECTION, PENSIEVE_DB_SECTION
 from resource_access.connections import get_mysql_connection
 from analytic_tables.conversion_functions import validate_and_convert_state, add_income_level, rename_and_drop_cols, \
-    ECE_REGION_MAPPING
+    ECE_REGION_MAPPING, add_foster_logic
 from analytic_tables.base_tables import MonthlyEnrollmentReporting, MonthlyOrganizationRevenueReporting, \
     MonthlyOrganizationSpaceReporting
 
@@ -109,9 +109,13 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame) -> pd.DataFrame:
 
     # Add Income level booleans
     enrollment_df = add_income_level(enrollment_df,
-                                     income_col=MonthlyEnrollmentReporting.Income.name,
+                                     income_col='Income',
                                      family_size_col='NumberOfPeople')
 
+    enrollment_df = add_foster_logic(enrollment_df=enrollment_df,
+                                     family_size_col='NumberOfPeople',
+                                     foster_col='Foster',
+                                     income_col='Income')
     # Create a boolean column for children with two or more races
     race_cols = ['AmericanIndianOrAlaskaNative', 'Asian', 'BlackOrAfricanAmerican', 'NativeHawaiianOrPacificIslander', 'White']
     enrollment_df[MonthlyEnrollmentReporting.TwoOrMoreRaces.name] = np.where(enrollment_df[race_cols].sum(axis=1) > 1,
