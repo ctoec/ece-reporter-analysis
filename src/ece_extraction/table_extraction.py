@@ -3,8 +3,11 @@ import numpy as np
 import pandas as pd
 from datetime import datetime
 from sqlalchemy.sql import text
-from resource_access.constants import ECE_DB_SECTION
+from analytic_tables.constants import FULL_TIME, PART_TIME, INFANT_TODDLER, PRESCHOOL, SCHOOL_AGE, ECE_REPORTER
+from resource_access.constants import ECE_DB_SECTION, PENSIEVE_DB_SECTION
 from resource_access.connections import get_mysql_connection
+from analytic_tables.conversion_functions import validate_and_convert_state, add_income_level, rename_and_drop_cols, \
+    ECE_REGION_MAPPING, add_foster_logic
 from analytic_tables.base_tables import MonthlyEnrollmentReporting, MonthlyOrganizationRevenueReporting, \
     MonthlyOrganizationSpaceReporting
 
@@ -14,28 +17,34 @@ SPACES_QUERY_FILE = ECE_DIR + '/sql/functions/cdc_spaces.sql'
 REVENUE_QUERY_FILE = ECE_DIR + '/sql/functions/cdc_revenue.sql'
 
 RATES_FILE = ECE_DIR + '/data/Rates.csv'
-INCOME_LEVEL_FILE = ECE_DIR + '/data/IncomeLevels.csv'
 
 DATA_DB = get_mysql_connection(ECE_DB_SECTION)
+PENSIEVE_DB = get_mysql_connection(PENSIEVE_DB_SECTION)
 
-# TKTKTKTK penseive creds
-# ANALYSIS_DB = get_mysql_connection(PENSIEVE_SECTION)
+AGE_GROUP_MAPPING = {0: INFANT_TODDLER,
+                     1: PRESCHOOL,
+                     2: SCHOOL_AGE}
+
+TIME_MAPPING = {0: FULL_TIME,
+                1: PART_TIME}
 
 
-def process_report(report: pd.Series) -> None:
+def process_report(report: pd.Series, current_funding: bool = False) -> None:
     """
     Pulls all data associated with a report. Datasets pulled are enrollments, spaces and revenue. Data is transformed,
     cleaned and loaded to analytics tables
     :param report: pandas row with metadata about a Report
+    :param current_funding: whether to use current funding data or historical data
     :return: None, data is loaded to the DB
     """
     # Pull raw enrollment data and transform it
-    raw_enrollment_df = get_raw_enrollments(report)
+    raw_enrollment_df = get_raw_enrollments(report, current_funding=current_funding)
     transformed_enrollment_df = transform_enrollment_df(raw_enrollment_df)
 
     # Write enrollment to analytics DB
     transformed_enrollment_df.to_sql(name=MonthlyEnrollmentReporting.__tablename__,
-                                     con=DATA_DB, if_exists='append', index=False)
+                                     con=PENSIEVE_DB, if_exists='append', index=False)
+    print("Enrollments loaded")
 
     # Pull raw space data, combine it with enrollments and transform it
     raw_space_df = get_raw_spaces(report)
@@ -43,7 +52,8 @@ def process_report(report: pd.Series) -> None:
 
     # Write space capacity and utilization to database
     transformed_space_df.to_sql(name=MonthlyOrganizationSpaceReporting.__tablename__,
-                                con=DATA_DB, if_exists='append', index=False)
+                                con=PENSIEVE_DB, if_exists='append', index=False)
+    print("Spaces loaded")
 
     # Pull raw revenue data, combine it with space data and transform
     raw_revenue_df = get_raw_revenue(report)
@@ -51,32 +61,35 @@ def process_report(report: pd.Series) -> None:
 
     # Write revenue data to database
     transformed_revenue_df.to_sql(name=MonthlyOrganizationRevenueReporting.__tablename__,
-                                  con=DATA_DB, if_exists='append', index=False)
+                                  con=PENSIEVE_DB, if_exists='append', index=False)
+    print("Revenue loaded")
 
 
-def add_new_reports(start_date: datetime.timestamp, end_date: datetime.timestamp):
+def add_new_reports(start_date: datetime.timestamp, end_date: datetime.timestamp, current_funding: bool = False):
     """
     Add all new reports since called start date to analytical tables
     :param start_date: timestamp, reports after this time, inclusive of the start time will be added
     :param end_date: timestamp, all reports before this time and after start date will be added
+    :param current_funding: whether to use current funding data or historical data
     :return: None
     """
     report_df = get_reports(start_date, end_date)
     print(f"Processing {len(report_df)} report(s)")
     for _, report in report_df.iterrows():
         print(f"Report ID {report.Id} processing")
-        process_report(report)
+        process_report(report, current_funding)
         print(f"Report ID {report.Id} done with processing")
 
 
-def get_raw_enrollments(report: pd.Series) -> pd.DataFrame:
+def get_raw_enrollments(report: pd.Series, current_funding: bool = False) -> pd.DataFrame:
     """
     Call cdc_enrollment.sql script with report metadata (SubmittedAt and Id) to get related Enrollments
     :param report: pandas series associated with a single report, Id and SubmittedAt are included
+    :param current_funding: whether to use current funding data or historical data
     :return: dataframe with all enrollments associated with a report
     """
-
-    parameters = {'system_time': report.SubmittedAt, 'report_id': report.Id}
+    funding_system_time = datetime.now() if current_funding else report.SubmittedAt
+    parameters = {'system_time': report.SubmittedAt, 'report_id': report.Id, 'funding_system_time': funding_system_time}
     df = pd.read_sql(sql=text(open(ENROLLMENT_QUERY_FILE).read()), params=parameters, con=DATA_DB)
 
     return df
@@ -85,29 +98,24 @@ def get_raw_enrollments(report: pd.Series) -> pd.DataFrame:
 def transform_enrollment_df(enrollment_df: pd.DataFrame) -> pd.DataFrame:
 
     # Add new columns
+    if sum(enrollment_df['Source'] != 0) != 0:
+        raise Exception("Non-CDC Source included in data pull")
+    # Set all sources ID'd as 0 as CDC
+    enrollment_df[MonthlyEnrollmentReporting.FundingSource.name] = MonthlyEnrollmentReporting.CDC_SOURCE
+    enrollment_df[MonthlyEnrollmentReporting.SourceSystem.name] = ECE_REPORTER
 
-    # Set family size to 1 for foster, leave as number of people for other
-    family_size_col = np.where(enrollment_df[MonthlyEnrollmentReporting.Foster.name] == 1,
-                               1, enrollment_df['NumberOfPeople'])
-    enrollment_df[MonthlyEnrollmentReporting.FamilySize.name] = family_size_col
-
-    # Overwrite income to 0 for foster children
-    income_col = np.where(enrollment_df[MonthlyEnrollmentReporting.Foster.name] == 1,
-                          1, enrollment_df['Income'])
-    enrollment_df[MonthlyEnrollmentReporting.Income.name] = income_col
+    # Set period type
+    enrollment_df[MonthlyEnrollmentReporting.PeriodType.name] = MonthlyEnrollmentReporting.MONTH
 
     # Add Income level booleans
-    income_level_df = pd.read_csv(INCOME_LEVEL_FILE)
-    enrollment_df = enrollment_df.merge(income_level_df,
-                                       left_on=MonthlyEnrollmentReporting.FamilySize.name,
-                                       right_on='NumberOfPeople')
-    enrollment_df[MonthlyEnrollmentReporting.SMI75.name] = enrollment_df['x75SMI']
-    enrollment_df[MonthlyEnrollmentReporting.Under75SMI.name] = np.where(enrollment_df.Income < enrollment_df.x75SMI,
-                                                                         1, 0)
-    enrollment_df[MonthlyEnrollmentReporting.FPL200.name] = enrollment_df['x200FPL']
-    enrollment_df[MonthlyEnrollmentReporting.Under200FPL.name] = np.where(enrollment_df.Income < enrollment_df.x200FPL,
-                                                                          1, 0)
+    enrollment_df = add_income_level(enrollment_df,
+                                     income_col='Income',
+                                     family_size_col='NumberOfPeople')
 
+    enrollment_df = add_foster_logic(enrollment_df=enrollment_df,
+                                     family_size_col='NumberOfPeople',
+                                     foster_col='Foster',
+                                     income_col='Income')
     # Create a boolean column for children with two or more races
     race_cols = ['AmericanIndianOrAlaskaNative', 'Asian', 'BlackOrAfricanAmerican', 'NativeHawaiianOrPacificIslander', 'White']
     enrollment_df[MonthlyEnrollmentReporting.TwoOrMoreRaces.name] = np.where(enrollment_df[race_cols].sum(axis=1) > 1,
@@ -129,28 +137,40 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame) -> pd.DataFrame:
     # Fill in times and age groups with text
     enrollment_df = replace_time_and_age_group_values(enrollment_df, 'Time', 'AgeGroup')
 
+    # Validate and formalize state names
+    enrollment_df['State'] = enrollment_df['State'].apply(validate_and_convert_state)
+
+    # Standardize Gender
+    enrollment_df['Gender'] = enrollment_df['Gender'].replace({0: MonthlyEnrollmentReporting.MALE,
+                                                               1: MonthlyEnrollmentReporting.FEMALE})
+
+    # Reformat birthdates
+    enrollment_df[MonthlyEnrollmentReporting.BirthDate.name] = pd.to_datetime(enrollment_df['Birthdate'])
+
+    # Rename regions
+    enrollment_df[MonthlyEnrollmentReporting.RegionName.name] = enrollment_df['Region'].replace(ECE_REGION_MAPPING)
     # Rename columns
     rename_dict = {
-        'ChildId': MonthlyEnrollmentReporting.ChildId.name,
-        'OrganizationId': MonthlyEnrollmentReporting.OrganizationId.name,
+        'ChildId': MonthlyEnrollmentReporting.SourceChildId.name,
+        'OrganizationId': MonthlyEnrollmentReporting.SourceOrganizationId.name,
         'OrganizationName': MonthlyEnrollmentReporting.OrganizationName.name,
-        'SiteId': MonthlyEnrollmentReporting.SiteId.name,
+        'SiteId': MonthlyEnrollmentReporting.SourceSiteId.name,
         'SiteName': MonthlyEnrollmentReporting.SiteName.name,
         'EnrollmentId': MonthlyEnrollmentReporting.EnrollmentId.name,
         'FamilyDeterminationId': MonthlyEnrollmentReporting.FamilyDeterminationId.name,
         'FamilyId': MonthlyEnrollmentReporting.FamilyId.name,
-        'ReportingPeriodId': MonthlyEnrollmentReporting.ReportingPeriodId.name,
         'ReportId': MonthlyEnrollmentReporting.ReportId.name,
         'Period': MonthlyEnrollmentReporting.Period.name,
-        'PeriodStart': MonthlyEnrollmentReporting.ReportingPeriodStart.name,
-        'PeriodEnd': MonthlyEnrollmentReporting.ReportingPeriodEnd.name,
+        'PeriodStart': MonthlyEnrollmentReporting.PeriodStart.name,
+        'PeriodEnd': MonthlyEnrollmentReporting.PeriodEnd.name,
         'Sasid': MonthlyEnrollmentReporting.Sasid.name,
         'LastName': MonthlyEnrollmentReporting.LastName.name,
+        'MiddleName': MonthlyEnrollmentReporting.MiddleName.name,
         'FirstName': MonthlyEnrollmentReporting.FirstName.name,
         'Accredited': MonthlyEnrollmentReporting.Accredited.name,
-        'Time': MonthlyEnrollmentReporting.TimeName.name,
+        'Time': MonthlyEnrollmentReporting.CDCTimeName.name,
         'Region': MonthlyEnrollmentReporting.RegionName.name,
-        'AgeGroup': MonthlyEnrollmentReporting.AgeGroupName.name,
+        'AgeGroup': MonthlyEnrollmentReporting.CDCAgeGroupName.name,
         'LicenseNumber': MonthlyEnrollmentReporting.SiteLicenseNumber.name,
         'TitleI': MonthlyEnrollmentReporting.TitleI.name,
         'Entry': MonthlyEnrollmentReporting.Entry.name,
@@ -164,14 +184,17 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame) -> pd.DataFrame:
         'White': MonthlyEnrollmentReporting.White.name,
         'HispanicOrLatinxEthnicity': MonthlyEnrollmentReporting.HispanicOrLatinxEthnicity.name,
         'Gender': MonthlyEnrollmentReporting.Gender.name,
-        'Source': MonthlyEnrollmentReporting.FundingSource.name
+        'Source': MonthlyEnrollmentReporting.FundingSource.name,
+        'FacilityCode': MonthlyEnrollmentReporting.FacilityCode.name,
+        'Zip': MonthlyEnrollmentReporting.ZipCode.name,
+        'Town': MonthlyEnrollmentReporting.Town.name,
+        'State': MonthlyEnrollmentReporting.State.name,
+        'AddressLine': MonthlyEnrollmentReporting.CombinedAddress.name,
+        'BirthCertificateId': MonthlyEnrollmentReporting.BirthCertificateId.name
     }
-    enrollment_df = enrollment_df.rename(columns=rename_dict)
 
-    # Remove non-existent columns
-    table_cols = MonthlyEnrollmentReporting.__table__.columns.keys()
-    enrollment_df = enrollment_df[list(set(enrollment_df.columns).intersection(table_cols))]
-
+    enrollment_df = rename_and_drop_cols(df=enrollment_df, rename_dict=rename_dict,
+                                         table_cols=MonthlyEnrollmentReporting.__table__.columns.keys())
 
     return enrollment_df
 
@@ -193,10 +216,13 @@ def transform_space_df(raw_space_df: pd.DataFrame, transformed_enrollment_df: pd
     # Rename time and age group for joining
     raw_space_df = replace_time_and_age_group_values(raw_space_df, 'Time', 'AgeGroup')
 
+    # Add period type
+
+    raw_space_df[MonthlyOrganizationSpaceReporting.PeriodType.name] = MonthlyOrganizationSpaceReporting.MONTH
     # Merge space and enrollment df
     merged_df = raw_space_df.merge(transformed_enrollment_df, how='left',
-                                   left_on=['OrganizationId', 'ReportingPeriodId', 'Time', 'AgeGroup'],
-                                   right_on=['OrganizationId', 'ReportingPeriodId', 'TimeName', 'AgeGroupName'],
+                                   left_on=['SourceOrganizationId', 'Period', 'PeriodType', 'Time', 'AgeGroup'],
+                                   right_on=['SourceOrganizationId', 'Period', 'PeriodType', 'CDCTimeName', 'CDCAgeGroupName'],
                                    suffixes=('', '_enrollment'))
 
     # Aggregate columns counting
@@ -208,27 +234,24 @@ def transform_space_df(raw_space_df: pd.DataFrame, transformed_enrollment_df: pd
         'TitleI<lambda_0>': MonthlyOrganizationSpaceReporting.UtilizedNonTitle1Spaces.name,
         'EnrollmentIdnunique': MonthlyOrganizationSpaceReporting.UtilizedSpaces.name,
         'CDCRevenuesum': MonthlyOrganizationSpaceReporting.CDCRevenue.name,
-        'ReportingPeriodId': MonthlyOrganizationSpaceReporting.ReportingPeriodId.name,
         'ReportId': MonthlyOrganizationSpaceReporting.ReportId.name,
         'Period': MonthlyOrganizationSpaceReporting.Period.name,
-        'PeriodStart':MonthlyOrganizationSpaceReporting.ReportingPeriodStart.name,
-        'PeriodEnd': MonthlyOrganizationSpaceReporting.ReportingPeriodEnd.name,
+        'PeriodType': MonthlyOrganizationSpaceReporting.PeriodType.name,
+        'PeriodStart': MonthlyOrganizationSpaceReporting.PeriodStart.name,
+        'PeriodEnd': MonthlyOrganizationSpaceReporting.PeriodEnd.name,
         'Accredited': MonthlyOrganizationSpaceReporting.Accredited.name,
         'Type': MonthlyOrganizationSpaceReporting.ReportFundingSourceType.name,
-        'OrganizationId': MonthlyOrganizationSpaceReporting.OrganizationId.name,
+        'SourceOrganizationId': MonthlyOrganizationSpaceReporting.SourceOrganizationId.name,
         'OrganizationName': MonthlyOrganizationSpaceReporting.OrganizationName.name,
         'Capacity': MonthlyOrganizationSpaceReporting.Capacity.name,
-        'Time': MonthlyOrganizationSpaceReporting.TimeName.name,
-        'AgeGroup': MonthlyOrganizationSpaceReporting.AgeGroupName.name
+        'Time': MonthlyOrganizationSpaceReporting.CDCTimeName.name,
+        'AgeGroup': MonthlyOrganizationSpaceReporting.CDCAgeGroupName.name
     }
 
-    grouped_space_columns.rename(columns=rename_dict, inplace=True)
-
-    # Remove columns that don't exist in the database
+    # Rename columns and remove columns that don't exist in the database
     table_cols = MonthlyOrganizationSpaceReporting.__table__.columns.keys()
-    space_df = grouped_space_columns[list(set(grouped_space_columns.columns).intersection(table_cols))]
+    space_df = rename_and_drop_cols(grouped_space_columns, table_cols=table_cols, rename_dict=rename_dict)
 
-    # Return dataframe ready to load
     return space_df
 
 
@@ -252,21 +275,23 @@ def transform_revenue_df(raw_revenue_df: pd.DataFrame, transformed_space_df: pd.
     # Combine dataframes and sum
     merged_df = raw_revenue_df.merge(transformed_space_df, how='left', left_on=['Id'], right_on=['ReportId'],
                                      suffixes=('', '_spaces'))
-    grouped_columns = ['ReportingPeriodId', 'Id', 'Period', 'ReportingPeriodStart', 'ReportingPeriodEnd',
-                       'Accredited_spaces', 'OrganizationId_spaces', 'OrganizationName', 'FamilyFeesRevenue',
+    grouped_columns = ['ReportingPeriodId', 'Id', 'Period', 'PeriodStart', 'PeriodEnd',
+                       'Accredited_spaces', 'SourceOrganizationId', 'OrganizationName', 'FamilyFeesRevenue',
                        'RetroactiveC4KRevenue', 'C4KRevenue']
 
     combined_value_df = merged_df.groupby(by=grouped_columns)[['CDCRevenue', 'Capacity', 'UtilizedSpaces']].sum().reset_index()
 
+    # Add source and month
+    combined_value_df[MonthlyOrganizationRevenueReporting.ReportFundingSourceType.name] = MonthlyOrganizationRevenueReporting.CDC_SOURCE
+    combined_value_df[MonthlyOrganizationRevenueReporting.PeriodType.name] = MonthlyOrganizationRevenueReporting.MONTH
     # Rename columns
     rename_dict = {
-        'ReportingPeriodId': MonthlyOrganizationRevenueReporting.ReportingPeriodId.name,
         'Id': MonthlyOrganizationRevenueReporting.ReportId.name,
         'Period': MonthlyOrganizationRevenueReporting.Period.name,
-        'ReportingPeriodStart': MonthlyOrganizationRevenueReporting.ReportingPeriodStart.name,
-        'ReportingPeriodEnd': MonthlyOrganizationRevenueReporting.ReportingPeriodEnd.name,
+        'PeriodStart': MonthlyOrganizationRevenueReporting.PeriodStart.name,
+        'PeriodEnd': MonthlyOrganizationRevenueReporting.PeriodEnd.name,
         'Accredited_spaces': MonthlyOrganizationRevenueReporting.Accredited.name,
-        'OrganizationId_spaces': MonthlyOrganizationRevenueReporting.OrganizationId.name,
+        'SourceOrganizationId': MonthlyOrganizationRevenueReporting.SourceOrganizationId.name,
         'OrganizationName': MonthlyOrganizationRevenueReporting.OrganizationName.name,
         'FamilyFeesRevenue': MonthlyOrganizationRevenueReporting.FamilyFeesRevenue.name,
         'RetroactiveC4KRevenue': MonthlyOrganizationRevenueReporting.RetroactiveC4KRevenue.name,
@@ -296,32 +321,16 @@ def get_reports(start_date: datetime.timestamp, end_date: datetime.timestamp) ->
     return new_reports
 
 
-
-
-
-
 def replace_time_and_age_group_values(df: pd.DataFrame, time_col: str, age_group_col: str) -> pd.DataFrame:
     """
-    Renames values in time and age group columns with names found in the custom rates file
+    Renames values in time and age group columns with names found in the custom rates file and adds a general space
+    type column
     :param df: dataframe to transform
     :param time_col: time column name
     :param age_group_col: age group column name
     :return: dataframe with renamed values
     """
-    rates_df = pd.read_csv(RATES_FILE)
-    time_cols = rates_df[['TimeId', 'Time']]
-
-    # Build time lookup from rates file
-    time_dict = {}
-    for i, row_dict in time_cols.drop_duplicates().set_index('TimeId').to_dict(orient='index').items():
-        time_dict[i] = row_dict['Time']
-
-    age_group_cols = rates_df[['AgeGroupId', 'AgeGroup']]
-
-    # Build age group lookup from rates file
-    age_group_dict = {}
-    for i, row_dict in age_group_cols.drop_duplicates().set_index('AgeGroupId').to_dict(orient='index').items():
-        age_group_dict[i] = row_dict['AgeGroup']
-
-    df.replace({age_group_col: age_group_dict, time_col: time_dict}, inplace=True)
+    # Data mapping enum from ECE Reporter
+    df = df.replace({age_group_col: AGE_GROUP_MAPPING, time_col: TIME_MAPPING})
+    df[MonthlyEnrollmentReporting.SpaceType.name] = df[age_group_col] + '-' + df[time_col]
     return df

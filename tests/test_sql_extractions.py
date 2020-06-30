@@ -34,8 +34,8 @@ class TestSQLExtractionFromDummy(unittest.TestCase):
 		Check that summary tables are filled with expected data for capacity
 		"""
 		# Get capacity numbers from summary tables
-		query = 'select TimeName, AgeGroupName, Capacity from MonthlyOrganizationSpaceReporting where ReportId = 2292'
-		df = pd.read_sql(sql=query, con=self.conn, index_col=['TimeName', 'AgeGroupName'])
+		query = 'select CDCTimeName, CDCAgeGroupName, Capacity from MonthlyOrganizationSpaceReporting where ReportId = 2292'
+		df = pd.read_sql(sql=query, con=self.conn, index_col=['CDCTimeName', 'CDCAgeGroupName'])
 		lookup_dict = df.to_dict()['Capacity']
 
 		# Check that numbers match expected numbers from SQL inserts
@@ -47,9 +47,9 @@ class TestSQLExtractionFromDummy(unittest.TestCase):
 
 	def test_space_utilization(self):
 
-		query = 'select TimeName, AgeGroupName, UtilizedSpaces, UtilizedNonTitle1Spaces, UtilizedTitleISpaces' \
+		query = 'select CDCTimeName, CDCAgeGroupName, UtilizedSpaces, UtilizedNonTitle1Spaces, UtilizedTitleISpaces' \
 				' from MonthlyOrganizationSpaceReporting where ReportId = 2292'
-		df = pd.read_sql(sql=query, con=self.conn, index_col=['TimeName', 'AgeGroupName'])
+		df = pd.read_sql(sql=query, con=self.conn, index_col=['CDCTimeName', 'CDCAgeGroupName'])
 		lookup_dict = df.to_dict()
 
 		# Check summed utilized numbers
@@ -80,12 +80,12 @@ class TestSQLExtractionFromDummy(unittest.TestCase):
 		self.assertEqual(float(revenue), 7481.95)
 
 		# Test that breakdown of revenue is correct
-		query = 'SELECT AgeGroupName,TimeName, Sum(CDCRevenue) AS Revenue ' \
+		query = 'SELECT CDCAgeGroupName,CDCTimeName, Sum(CDCRevenue) AS Revenue ' \
 				'FROM MonthlyEnrollmentReporting ' \
 				'where ReportId = 2292 ' \
-				'GROUP BY AgeGroupName, TimeName'
+				'GROUP BY CDCAgeGroupName, CDCTimeName'
 
-		df = pd.read_sql(sql=query, con=self.conn, index_col=['AgeGroupName', 'TimeName'])
+		df = pd.read_sql(sql=query, con=self.conn, index_col=['CDCAgeGroupName', 'CDCTimeName'])
 		lookup_dict = df.to_dict()['Revenue']
 		# Check breakdown of revenue by type
 		self.assertEqual(5205.10, float(lookup_dict[(INFANT, FT)]))
@@ -98,7 +98,7 @@ class TestSQLExtractionFromDummy(unittest.TestCase):
 
 		query = """
 		SELECT     FamilySize,
-        COUNT(DISTINCT(ChildId)) AS NumberOfFamilies
+        COUNT(DISTINCT(SourceChildId)) AS NumberOfFamilies
 		FROM MonthlyEnrollmentReporting
 		WHERE Under200FPL = 1
 		GROUP BY FamilySize"""

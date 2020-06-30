@@ -1,20 +1,27 @@
 select
-    Child.Id as ChildId,
+    convert(nvarchar(100), Child.Id) as SourceChildId,
     Organization.Id as OrganizationId,
     Organization.Name as OrganizationName,
     Site.Id as SiteId,
     Site.Name as SiteName,
+    Site.FacilityCode,
     Enrollment.Id as EnrollmentId,
     FamilyDeterminationId,
     Family.Id as FamilyId,
-    RPCDC.Id as ReportingPeriodId,
     Report.Id as ReportId,
     RPCDC.Period,
     RPCDC.PeriodStart,
     RPCDC.PeriodEnd,
     Child.Sasid,
     Child.LastName,
+    Child.MiddleName,
     Child.FirstName,
+    Child.BirthCertificateId,
+    Child.Birthdate,
+    Family.Town,
+    Family.State,
+    Family.Zip,
+    trim(CONCAT(AddressLine1,' ', AddressLine2)) as AddressLine,
     Site.TitleI,
     Report.Accredited,
     FS.Time,
@@ -36,7 +43,7 @@ select
     F.Source,
     C4K.StartDate,
     C4K.EndDate
-    from Funding FOR SYSTEM_TIME AS OF :system_time AS F
+    from Funding FOR SYSTEM_TIME AS OF :funding_system_time AS F
     inner join ReportingPeriod RPCDC on
         F.FirstReportingPeriodId <= RPCDC.Id and (F.LastReportingPeriodId is null or F.LastReportingPeriodId >= RPCDC.Id)
     inner join Enrollment FOR SYSTEM_TIME AS OF :system_time AS Enrollment on Enrollment.Id = EnrollmentId
