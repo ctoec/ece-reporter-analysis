@@ -150,10 +150,13 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame, month_start: datetime.d
 
     # Add Time and Age Group for CDC Funding
     cdc_rows = enrollment_df.FundingSource == MonthlyEnrollmentReporting.CDC_SOURCE
+    enrollment_df[MonthlyEnrollmentReporting.SpaceType.name] = enrollment_df['SpaceType']
     enrollment_df.loc[cdc_rows, MonthlyEnrollmentReporting.CDCTimeName.name] = enrollment_df.loc[
-        cdc_rows].SpaceType.apply(extract_time_from_ECIS)
+        cdc_rows]['SpaceType'].apply(extract_time_from_ECIS)
     enrollment_df.loc[cdc_rows, MonthlyEnrollmentReporting.CDCAgeGroupName.name] = enrollment_df.loc[
-        cdc_rows].SpaceType.apply(extract_age_group_from_ECIS)
+        cdc_rows]['SpaceType'].apply(extract_age_group_from_ECIS)
+    enrollment_df.loc[cdc_rows, MonthlyEnrollmentReporting.SpaceType.name] = enrollment_df[MonthlyEnrollmentReporting.CDCAgeGroupName.name] + \
+                                                                             '-' + enrollment_df[MonthlyEnrollmentReporting.CDCTimeName.name]
 
     # Rename columns
     rename_dict = {'StudentId': MonthlyEnrollmentReporting.SourceChildId.name,
@@ -196,7 +199,8 @@ def create_space_df(transformed_enrollment_df: pd.DataFrame) -> pd.DataFrame:
     key_cols = [MonthlyEnrollmentReporting.Period.name, MonthlyEnrollmentReporting.PeriodType.name,
                 MonthlyEnrollmentReporting.PeriodStart.name, MonthlyEnrollmentReporting.PeriodEnd.name,
                 MonthlyEnrollmentReporting.FundingSource.name, MonthlyEnrollmentReporting.SourceOrganizationId.name,
-                MonthlyEnrollmentReporting.CDCTimeName.name, MonthlyEnrollmentReporting.CDCAgeGroupName.name]
+                MonthlyEnrollmentReporting.CDCTimeName.name, MonthlyEnrollmentReporting.CDCAgeGroupName.name,
+                MonthlyEnrollmentReporting.SpaceType.name]
 
     # Replace NULLs with text so they are included in grouping
     ## TODO
@@ -216,6 +220,7 @@ def create_space_df(transformed_enrollment_df: pd.DataFrame) -> pd.DataFrame:
                    MonthlyEnrollmentReporting.SourceOrganizationId.name: MonthlyOrganizationSpaceReporting.SourceOrganizationId.name,
                    MonthlyEnrollmentReporting.CDCTimeName.name: MonthlyOrganizationSpaceReporting.CDCTimeName.name,
                    MonthlyEnrollmentReporting.CDCAgeGroupName.name: MonthlyOrganizationSpaceReporting.CDCAgeGroupName.name,
+                   MonthlyEnrollmentReporting.SpaceType.name: MonthlyOrganizationSpaceReporting.SpaceType.name,
                    0: MonthlyOrganizationSpaceReporting.UtilizedSpaces.name}
     table_cols = MonthlyOrganizationSpaceReporting.__table__.columns.keys()
     renamed_grouped_df = rename_and_drop_cols(grouped_df, rename_dict=rename_dict, table_cols=table_cols)
