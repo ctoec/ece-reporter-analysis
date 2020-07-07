@@ -4,4 +4,4 @@
 # Set current directory as part of the pythonpath to ensure all packages are loaded correctly
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 export PYTHONPATH="${PYTHONPATH}:${DIR}"
-python3 main.py
+python3 $DIR/main.py
