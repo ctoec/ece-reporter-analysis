@@ -2,10 +2,10 @@
 IF NOT EXISTS (select *
 from INFORMATION_SCHEMA.TABLES
 WHERE TABLE_NAME = 'MonthlyEnrollmentReporting'
-  AND TABLE_SCHEMA = 'dbo')
+  AND TABLE_SCHEMA = 'Pensieve')
 
 BEGIN
-    create table dbo.MonthlyEnrollmentReporting
+    create table Pensieve.MonthlyEnrollmentReporting
 (
 	Id int identity
 		primary key,
@@ -77,10 +77,10 @@ go
 IF NOT EXISTS (select *
 from INFORMATION_SCHEMA.TABLES
 WHERE TABLE_NAME = 'MonthlyOrganizationSpaceReporting'
-  AND TABLE_SCHEMA = 'dbo')
+  AND TABLE_SCHEMA = 'Pensieve')
 
 BEGIN
-    create table dbo.MonthlyOrganizationSpaceReporting
+    create table Pensieve.MonthlyOrganizationSpaceReporting
     (
         Id int identity
             primary key,
@@ -112,9 +112,9 @@ go
 IF NOT EXISTS (select *
 from INFORMATION_SCHEMA.TABLES
 WHERE TABLE_NAME = 'MonthlyOrganizationRevenueReporting'
-  AND TABLE_SCHEMA = 'dbo')
+  AND TABLE_SCHEMA = 'Pensieve')
 BEGIN
-    create table dbo.MonthlyOrganizationRevenueReporting
+    create table Pensieve.MonthlyOrganizationRevenueReporting
     (
         Id int identity
             primary key,
@@ -141,40 +141,40 @@ END
 go
 
 -- Create triggers for time updated columns
-DROP TRIGGER IF EXISTS dbo.TriggerEnrollmentTsUpd;
+DROP TRIGGER IF EXISTS Pensieve.TriggerEnrollmentTsUpd;
 go
-CREATE TRIGGER dbo.TriggerEnrollmentTsUpd ON dbo.MonthlyEnrollmentReporting
+CREATE TRIGGER Pensieve.TriggerEnrollmentTsUpd ON Pensieve.MonthlyEnrollmentReporting
         AFTER UPDATE
         AS
           UPDATE e set TimeUpdated=GETDATE()
           FROM
-          dbo.MonthlyEnrollmentReporting AS e
+          Pensieve.MonthlyEnrollmentReporting AS e
           INNER JOIN inserted
           AS i
           ON e.Id = i.Id;
 go
 
-DROP TRIGGER IF EXISTS dbo.TriggerSpaceTsUpd;
+DROP TRIGGER IF EXISTS Pensieve.TriggerSpaceTsUpd;
 go
-CREATE TRIGGER dbo.TriggerSpaceTsUpd ON dbo.MonthlyOrganizationSpaceReporting
+CREATE TRIGGER Pensieve.TriggerSpaceTsUpd ON Pensieve.MonthlyOrganizationSpaceReporting
         AFTER UPDATE
         AS
           UPDATE s set TimeUpdated=GETDATE()
           FROM
-          dbo.MonthlyOrganizationSpaceReporting AS s
+          Pensieve.MonthlyOrganizationSpaceReporting AS s
           INNER JOIN inserted
           AS i
           ON s.Id = i.Id;
 go
 
-DROP TRIGGER IF EXISTS dbo.TriggerOrgRevTsUpd;
+DROP TRIGGER IF EXISTS Pensieve.TriggerOrgRevTsUpd;
 go
-CREATE TRIGGER dbo.TriggerOrgRevTsUpd ON dbo.MonthlyOrganizationRevenueReporting
+CREATE TRIGGER Pensieve.TriggerOrgRevTsUpd ON Pensieve.MonthlyOrganizationRevenueReporting
         AFTER UPDATE
         AS
           UPDATE r set TimeUpdated=GETDATE()
           FROM
-          dbo.MonthlyOrganizationRevenueReporting AS r
+          Pensieve.MonthlyOrganizationRevenueReporting AS r
           INNER JOIN inserted
           AS i
           ON r.Id = i.Id;
