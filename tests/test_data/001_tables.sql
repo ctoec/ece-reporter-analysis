@@ -482,3 +482,4 @@ create table __EFMigrationsHistory
 )
 go
 
+CREATE SCHEMA pensieve;
