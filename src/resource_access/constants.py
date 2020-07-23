@@ -11,3 +11,10 @@ DB_KEY = 'database'
 USER_KEY = 'user'
 PASSWORD_KEY = 'password'
 PORT_KEY = 'port'
+
+# S3
+S3_DATA_STORAGE = 'pensieve-data-storage'
+S3_ECE_DATA_PATH = 'ece'
+ENROLLMENTS_FILE = 'enrollments.csv'
+SPACES_FILE = 'spaces.csv'
+REVENUE_FILE = 'revenue.csv'
