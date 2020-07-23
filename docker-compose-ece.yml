@@ -1,0 +1,14 @@
+version: '3'
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      STAGE: $STAGE
+    volumes:
+      - ./src:/src
+      - $HOME/.aws:/root/.aws
+    entrypoint:
+      - /bin/bash
+      - src/run_ece.sh

@@ -5,9 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./tests:/tests
       - ./src:/src
-      - ./tests/run_tests.sh:/run_tests.sh
       - ./tests/config.ini:/src/resource_access/config.ini
     entrypoint:
       - /bin/bash
