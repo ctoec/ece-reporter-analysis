@@ -1,8 +1,6 @@
 import os
 import pandas as pd
-from resource_access.constants import ECE_DB_SECTION
-from resource_access.connections import get_mysql_connection
-from ece_extraction.table_extraction import extract_ece_data, get_reports, get_month_of_reports, process_ece_s3_data
+from ece_extraction.table_extraction import extract_ece_data, get_month_of_reports, process_ece_s3_data
 
 START_DATE = '2020-01-01'
 END_DATE = '2020-06-30'
