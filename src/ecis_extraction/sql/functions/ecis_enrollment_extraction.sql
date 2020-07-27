@@ -11,7 +11,7 @@ select
        Student.StudentDetails.FirstName,
        Student.StudentDetails.MiddleName,
        Student.StudentDetails.LastName,
-       CAST(Student.StudentDetails.Dob as DATE) as Dob,
+       Student.StudentDetails.Dob,
        Student.StudentDetails.Gender,
        RecentDetermination.AnnualFamilyIncome,
        RecentDetermination.NumberOfPeopleInHousehold,
@@ -47,7 +47,7 @@ left join Student.EditableFieldValues as StateOfBirth ON
 left join Student.EditableFieldValues as TownOfBirth ON
     Student.Student.Id = TownOfBirth.StudentId AND TownOfBirth.EditableFieldId = 5
 left join Enrollment.AdditionalFundingSources on EnrollmentFunding.EnrollmentId = Enrollment.AdditionalFundingSources.EnrollmentId
-WHERE StartDate <= :start_date AND EndDate >= :end_date
+WHERE StartDate <= CAST(:start_date AS DATETIME) AND EndDate >= CAST(:end_date AS DATETIME)
 GROUP BY Enrollment.EnrollmentFunding.FundingType, Student.Enrollment.Id, Student.Enrollment.EnrollmentDate,
          Student.Enrollment.FacilityExitDate, Universal.Agency.Name, Universal.Agency.Id, Universal.Agency.Code,
          Universal.Agency.ParentOrganization, Student.Student.SASID, Student.StudentDetails.FirstName,

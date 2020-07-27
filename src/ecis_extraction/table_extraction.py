@@ -58,12 +58,12 @@ def load_month_of_reports(month: datetime.date) -> None:
     """
     start_date, end_date = get_beginning_and_end_of_month(month)
     enrollment_df = get_raw_enrollment_df(start_date=start_date, end_date=end_date)
-    print(f"Data Extracted from ECIS for month: {start_date}")
+    print(f"Data Extracted from ECIS for month: {start_date} at {datetime.now()}")
     transformed_enrollment_df = transform_enrollment_df(enrollment_df, start_date, end_date)
     print(f"Enrollment data transformed")
     transformed_enrollment_df.to_sql(name=MonthlyEnrollmentReporting.__tablename__,
                                      con=PENSIEVE_DB, if_exists='append', index=False)
-    print(f"Enrollment data loaded to database for month: {start_date}")
+    print(f"Enrollment data loaded to database for month: {start_date} at {datetime.now()}")
     # Transform enrollment dataframe into space dataframe
     space_and_utilization_df = create_space_df(transformed_enrollment_df)
     print(f"Space dataframe created")
@@ -131,7 +131,7 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame, month_start: datetime.d
                                                                                              'F ': MonthlyEnrollmentReporting.FEMALE})
 
     # Convert birthdates
-    enrollment_df[MonthlyEnrollmentReporting.BirthDate.name] = pd.to_datetime(enrollment_df['Dob'])
+    enrollment_df[MonthlyEnrollmentReporting.BirthDate.name] = pd.to_datetime(enrollment_df['Dob'], errors='coerce')
 
     # Switch to canonical funding sources
     renamed_funding_cols = enrollment_df['FundingType'].replace(FUNDING_MAPPING)
@@ -279,13 +279,13 @@ def extract_time_from_ECIS(space_type: str) -> str:
     :param space_type: string from ECIS
     :return:
     """
+    space_type = space_type.strip()
     if constants.ECIS_FULL_TIME in space_type:
         return constants.FULL_TIME
     if constants.ECIS_WRAP_AROUND in space_type:
         return constants.PART_TIME
     if space_type == constants.ECIS_SCHOOL_AGE:
         return constants.PART_TIME
-
     raise Exception(f"{space_type} does not have a valid time")
 
 
