@@ -62,19 +62,19 @@ def load_month_of_reports(month: datetime.date) -> None:
     transformed_enrollment_df = transform_enrollment_df(enrollment_df, start_date, end_date)
     print(f"Enrollment data transformed")
     transformed_enrollment_df.to_sql(name=MonthlyEnrollmentReporting.__tablename__,
-                                     con=PENSIEVE_DB, if_exists='append', index=False)
+                                     con=PENSIEVE_DB, if_exists='append', index=False, schema='pensieve')
     print(f"Enrollment data loaded to database for month: {start_date} at {datetime.now()}")
     # Transform enrollment dataframe into space dataframe
     space_and_utilization_df = create_space_df(transformed_enrollment_df)
     print(f"Space dataframe created")
     space_and_utilization_df.to_sql(name=MonthlyOrganizationSpaceReporting.__tablename__,
-                                    con=PENSIEVE_DB, if_exists='append', index=False)
+                                    con=PENSIEVE_DB, if_exists='append', index=False, schema='pensieve')
     print("Space data loaded")
     # Create organization level dataframe from space level dataframe
     organization_df = create_organization_df(space_and_utilization_df)
     print("Organization data created")
     organization_df.to_sql(name=MonthlyOrganizationRevenueReporting.__tablename__,
-                           con=PENSIEVE_DB, if_exists='append', index=False)
+                           con=PENSIEVE_DB, if_exists='append', index=False, schema='pensieve')
     print("Organization data loaded")
 
 
@@ -184,6 +184,10 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame, month_start: datetime.d
     table_cols = MonthlyEnrollmentReporting.__table__.columns.keys()
     enrollment_df = rename_and_drop_cols(df=enrollment_df, rename_dict=rename_dict, table_cols=table_cols)
 
+    # Drop row that has duplicate values due to a malformed DOB
+    bad_row = enrollment_df[(enrollment_df['SourceChildId'] == 6798) & (pd.isnull(enrollment_df['BirthDate']))]
+    if len(bad_row) > 0:
+        enrollment_df = enrollment_df.drop(bad_row.index[0])
     return enrollment_df
 
 
