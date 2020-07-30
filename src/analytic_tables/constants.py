@@ -2,6 +2,9 @@
 ECE_REPORTER = 'ECE Reporter'
 HISTORICAL_ECIS = 'Historical ECIS Snapshot'
 
+# Pensieve
+PENSIEVE_SCHEMA = 'Pensieve'
+
 # Canonical Times
 FULL_TIME = 'FT'
 PART_TIME = 'PT'

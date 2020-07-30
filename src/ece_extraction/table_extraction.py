@@ -4,7 +4,7 @@ import pandas as pd
 import sqlalchemy
 from datetime import datetime, timedelta
 from sqlalchemy.sql import text
-from analytic_tables.constants import FULL_TIME, PART_TIME, INFANT_TODDLER, PRESCHOOL, SCHOOL_AGE, ECE_REPORTER
+from analytic_tables.constants import FULL_TIME, PART_TIME, INFANT_TODDLER, PRESCHOOL, SCHOOL_AGE, ECE_REPORTER, PENSIEVE_SCHEMA
 from resource_access.constants import ECE_DB_SECTION, PENSIEVE_DB_SECTION, ENROLLMENTS_FILE, SPACES_FILE, REVENUE_FILE, \
     S3_ECE_DATA_PATH
 from resource_access.connections import get_mysql_connection, write_df_to_s3, get_s3_files_in_folder, get_s3_subfolders
@@ -71,7 +71,7 @@ def transform_and_load_report(df_dict: dict,  pensieve_db: sqlalchemy.engine.Con
     transformed_enrollment_df = transform_enrollment_df(raw_enrollment_df)
     # Write enrollment to analytics DB
     transformed_enrollment_df.to_sql(name=MonthlyEnrollmentReporting.__tablename__,
-                                     con=pensieve_db, if_exists='append', index=False, schema='pensieve')
+                                     con=pensieve_db, if_exists='append', index=False, schema=PENSIEVE_SCHEMA)
     print("Enrollments loaded")
 
     # Pull raw space data, combine it with enrollments and transform it
@@ -80,7 +80,7 @@ def transform_and_load_report(df_dict: dict,  pensieve_db: sqlalchemy.engine.Con
 
     # Write space capacity and utilization to database
     transformed_space_df.to_sql(name=MonthlyOrganizationSpaceReporting.__tablename__,
-                                con=pensieve_db, if_exists='append', index=False, schema='pensieve')
+                                con=pensieve_db, if_exists='append', index=False, schema=PENSIEVE_SCHEMA)
     print("Spaces loaded")
 
     # Pull raw revenue data, combine it with space data and transform
@@ -89,7 +89,7 @@ def transform_and_load_report(df_dict: dict,  pensieve_db: sqlalchemy.engine.Con
 
     # Write revenue data to database
     transformed_revenue_df.to_sql(name=MonthlyOrganizationRevenueReporting.__tablename__,
-                                  con=pensieve_db, if_exists='append', index=False, schema='pensieve')
+                                  con=pensieve_db, if_exists='append', index=False, schema=PENSIEVE_SCHEMA)
     print("Revenue loaded")
 
 
@@ -108,7 +108,7 @@ def process_ece_s3_data(submission_month: datetime.date) -> None:
     start_of_month, _ = get_beginning_and_end_of_month(submission_month)
 
     # Get list of folders associated with each submitted report
-    folder_prefix = f"pensieve/{stage}/{S3_ECE_DATA_PATH}/submitted/{start_of_month}"
+    folder_prefix = f"pensieve/{stage}/{S3_ECE_DATA_PATH}/submitted/{start_of_month.date()}"
     folder_list = get_s3_subfolders(folder_prefix)
 
     for folder in folder_list:

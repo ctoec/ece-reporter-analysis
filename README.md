@@ -123,6 +123,7 @@ The steps of the ETL process are:
 - Accredited and Title I flags for ECIS
 - Does Wraparound in ECIS directly correspond to part time? 
 - What time field should be used for active month? (Enrollment Funding has some 1900 dates)
+- Duplicate enrollments and Fundings are created for the same time for the same child
 
 ## Tests
 

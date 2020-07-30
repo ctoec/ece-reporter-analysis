@@ -7,7 +7,7 @@ END_DATE = '2020-06-30'
 
 if __name__ == '__main__':
 
-    os.environ['stage'] = 'prod'
+    os.environ['STAGE'] = 'prod'
 
     for month in pd.date_range(START_DATE, END_DATE, freq='MS').tolist():
 

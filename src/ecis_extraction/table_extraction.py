@@ -62,19 +62,19 @@ def load_month_of_reports(month: datetime.date) -> None:
     transformed_enrollment_df = transform_enrollment_df(enrollment_df, start_date, end_date)
     print(f"Enrollment data transformed")
     transformed_enrollment_df.to_sql(name=MonthlyEnrollmentReporting.__tablename__,
-                                     con=PENSIEVE_DB, if_exists='append', index=False, schema='pensieve')
+                                     con=PENSIEVE_DB, if_exists='append', index=False, schema=constants.PENSIEVE_SCHEMA)
     print(f"Enrollment data loaded to database for month: {start_date} at {datetime.now()}")
     # Transform enrollment dataframe into space dataframe
     space_and_utilization_df = create_space_df(transformed_enrollment_df)
     print(f"Space dataframe created")
     space_and_utilization_df.to_sql(name=MonthlyOrganizationSpaceReporting.__tablename__,
-                                    con=PENSIEVE_DB, if_exists='append', index=False, schema='pensieve')
+                                    con=PENSIEVE_DB, if_exists='append', index=False, schema=constants.PENSIEVE_SCHEMA)
     print("Space data loaded")
     # Create organization level dataframe from space level dataframe
     organization_df = create_organization_df(space_and_utilization_df)
     print("Organization data created")
     organization_df.to_sql(name=MonthlyOrganizationRevenueReporting.__tablename__,
-                           con=PENSIEVE_DB, if_exists='append', index=False, schema='pensieve')
+                           con=PENSIEVE_DB, if_exists='append', index=False, schema=constants.PENSIEVE_SCHEMA)
     print("Organization data loaded")
 
 
