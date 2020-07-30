@@ -44,8 +44,8 @@ to S3.
 
 #### Transformation and loading
 
-This process needs to be run with access to the Pensieve database and the S3 bucket where extracted data was placed.
-Running `STAGE=prod docker-compose -f docker-compose-ece-load.yml up --build` will pull the data loaded to S3 last month, 
+This process needs to be run with local port access to the Pensieve database and the S3 bucket where extracted data was placed.
+Running `STAGE=prod docker-compose -f docker-compose-ece-load.yml up --build` will pull the data from S3 that was submitted last month, 
 run transformations on it and load the Pensieve DB. The config file here only requires the Pensieve DB setup.
 
 1. Transform Enrollment data
