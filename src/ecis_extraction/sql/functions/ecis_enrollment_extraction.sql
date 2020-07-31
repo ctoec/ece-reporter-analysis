@@ -11,13 +11,13 @@ select
        Student.StudentDetails.FirstName,
        Student.StudentDetails.MiddleName,
        Student.StudentDetails.LastName,
-       CAST(Student.StudentDetails.Dob as DATE) as Dob,
+       Student.StudentDetails.Dob,
        Student.StudentDetails.Gender,
        RecentDetermination.AnnualFamilyIncome,
        RecentDetermination.NumberOfPeopleInHousehold,
        Enrollment.EnrollmentFunding.FundingType,
-       string_agg(Student.Race.RaceCode,',') as RaceList,
-       string_agg(Enrollment.AdditionalFundingSources.AdditionalFundingType,',') as AdditionalFundingTypes,
+       RaceList,
+       AdditionalFunding.AdditionalFundingTypes,
        trim(concat(RecentAddress.StreetNumber, ' ', RecentAddress.Address1, ' ', RecentAddress.Address2)) as Address,
        RecentAddress.Town,
        RecentAddress.Zip,
@@ -36,23 +36,20 @@ left join
     (select *, ROW_NUMBER() OVER (PARTITION BY StudentId ORDER BY DateFamilyIncomeDocumented DESC) as RN FROM Enrollment.AdditionalStudentInfo)
     as RecentDetermination on Student.Student.Id = RecentDetermination.StudentId AND RecentDetermination.RN = 1
 left join Universal.Agency on Student.Enrollment.FacilityCode = Universal.Agency.Code
-LEFT JOIN Student.Race on Student.Student.Id = Student.Race.StudentId
+LEFT JOIN (select StudentId, string_agg(Student.Race.RaceCode,',') as RaceList
+           From Student.Race
+           GROUP BY StudentId) as StudentRace on Student.Student.Id = StudentRace.StudentId
 left join
     (select *, ROW_NUMBER() OVER (PARTITION BY StudentId ORDER BY ModifiedDate DESC) as RN FROM Student.Address)
         as RecentAddress on Student.Student.Id = RecentAddress.StudentId AND RecentAddress.RN = 1
 left join Student.EditableFieldValues as BirthCertificate ON
-    BirthCertificate.StudentId = Student.Student.Id AND BirthCertificate.EditableFieldId = 3
+    BirthCertificate.StudentId = Student.Student.Id AND BirthCertificate.EditableFieldId = 3 and Enrollment.RegisteringSiteId = BirthCertificate.OrganizationId
 left join Student.EditableFieldValues as StateOfBirth ON
-    StateOfBirth.StudentId = Student.Student.Id AND StateOfBirth.EditableFieldId = 4
+    StateOfBirth.StudentId = Student.Student.Id AND StateOfBirth.EditableFieldId = 4 and Enrollment.RegisteringSiteId = StateOfBirth.OrganizationId
 left join Student.EditableFieldValues as TownOfBirth ON
-    Student.Student.Id = TownOfBirth.StudentId AND TownOfBirth.EditableFieldId = 5
-left join Enrollment.AdditionalFundingSources on EnrollmentFunding.EnrollmentId = Enrollment.AdditionalFundingSources.EnrollmentId
-WHERE StartDate <= :start_date AND EndDate >= :end_date
-GROUP BY Enrollment.EnrollmentFunding.FundingType, Student.Enrollment.Id, Student.Enrollment.EnrollmentDate,
-         Student.Enrollment.FacilityExitDate, Universal.Agency.Name, Universal.Agency.Id, Universal.Agency.Code,
-         Universal.Agency.ParentOrganization, Student.Student.SASID, Student.StudentDetails.FirstName,
-         Student.StudentDetails.MiddleName, Student.StudentDetails.LastName, Student.StudentDetails.Dob,
-         Student.StudentDetails.Gender, RecentDetermination.AnnualFamilyIncome, RecentDetermination.NumberOfPeopleInHousehold,
-         Student.Student.Id, trim(concat(RecentAddress.StreetNumber, ' ', RecentAddress.Address1, ' ', RecentAddress.Address2)),
-         RecentAddress.Town, RecentAddress.Zip, RecentAddress.State, RecentDetermination.IndividualizedIEP,
-         RecentAddress.AddressType, BirthCertificate.Value, StateOfBirth.Value, TownOfBirth.Value, Enrollment.EnrollmentFunding.SpaceType
+    Student.Student.Id = TownOfBirth.StudentId AND TownOfBirth.EditableFieldId = 5 and Enrollment.RegisteringSiteId = TownOfBirth.OrganizationId
+left join (select EnrollmentId, string_agg(Enrollment.AdditionalFundingSources.AdditionalFundingType,',') as AdditionalFundingTypes
+           from Enrollment.AdditionalFundingSources
+           GROUP BY EnrollmentId) as AdditionalFunding on AdditionalFunding.EnrollmentId = EnrollmentFunding.EnrollmentId
+WHERE StartDate <= CAST(:start_date AS DATETIME) AND EndDate >= CAST(:end_date AS DATETIME)
+GROUP BY Student.Student.Id, Student.Enrollment.Id, CAST(Student.Enrollment.EnrollmentDate as DATE), CAST(Student.Enrollment.FacilityExitDate as DATE), Universal.Agency.Name, Universal.Agency.Id, Universal.Agency.Code, Universal.Agency.ParentOrganization, Student.Student.SASID, Student.StudentDetails.FirstName, Student.StudentDetails.MiddleName, Student.StudentDetails.LastName, Student.StudentDetails.Dob, Student.StudentDetails.Gender, RecentDetermination.AnnualFamilyIncome, RecentDetermination.NumberOfPeopleInHousehold, Enrollment.EnrollmentFunding.FundingType, RaceList, AdditionalFunding.AdditionalFundingTypes, trim(concat(RecentAddress.StreetNumber, ' ', RecentAddress.Address1, ' ', RecentAddress.Address2)), RecentAddress.Town, RecentAddress.Zip, RecentAddress.State, RecentDetermination.IndividualizedIEP, RecentAddress.AddressType, BirthCertificate.Value, StateOfBirth.Value, TownOfBirth.Value, Enrollment.EnrollmentFunding.SpaceType;

@@ -61,8 +61,14 @@ def add_foster_logic(enrollment_df: pd.DataFrame, foster_col: str, income_col: s
     :param family_size_col: name of column with family size
     :return: dataframe with updated family size and income column based on Foster
     """
+
+    # Replace 9 or more with 9 (50 records affected), strip white space and set nulls
+    try:
+        adjusted_family_size_col = enrollment_df[family_size_col].str.replace('or more', '').str.strip().replace('', np.nan).astype(float)
+    except Exception:
+        adjusted_family_size_col = enrollment_df[family_size_col].astype(str).str.replace('or more', '').str.strip().replace('',np.nan).astype(float)
     # Set family size to 1 for foster, leave as number of people for other
-    family_size_col = np.where(enrollment_df[foster_col] == 1, 1, enrollment_df[family_size_col])
+    family_size_col = np.where(enrollment_df[foster_col] == 1, 1, adjusted_family_size_col)
     enrollment_df[MonthlyEnrollmentReporting.FamilySize.name] = family_size_col
 
     # Overwrite income to 0 for foster children

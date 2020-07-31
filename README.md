@@ -20,8 +20,34 @@ This code pulls data from ECE Reporter in an ordered manner than can be used in 
 ingestion framework. It breaks down the ingestion process into various extraction, transformation
 and combination steps. 
 
-The order of operations is:
+The order of operations is divided into two components, extraction from ECE Reporter, then transforming and loading to Pensieve.
+
+Both runs require a config.ini file in `src/resource_access` and can either locally or on ECE server. Setting the host as 
+`host.docker.internal` will allow the container to access open ports on the host machine. The config file for ECE Extraction
+only requires the ECE Reporter DB to be filled out. If running locally configure the host and ports to be set up with 
+local ports that have been tunnelled and forwarded to the appropriate ports on production.
+
+The docker-compose for both processes looks in the home directory of the running machine under .aws (`~/.aws`) for a config file to 
+access S3, this folder is created when the AWS CLI is configured.
+
+#### extraction
+Running `STAGE={stage} docker-compose -f docker-compose-ece.yml up --build`
+with the appropriate stage filled in will extract data submitted in the prior month from ECE and upload the results
+to S3. 
+
 1. Extract Enrollment data
+1. Load Enrollment data to S3
+1. Extract Capacity data
+1. Load Capacity data to S3
+1. Extract Report Revenue data
+1. Load Revenue data to S3
+
+#### Transformation and loading
+
+This process needs to be run with local port access to the Pensieve database and the S3 bucket where extracted data was placed.
+Running `STAGE=prod docker-compose -f docker-compose-ece-load.yml up --build` will pull the data from S3 that was submitted last month, 
+run transformations on it and load the Pensieve DB. The config file here only requires the Pensieve DB setup.
+
 1. Transform Enrollment data
    - Rename columns
    - Add booleans for income levels relative the state median income (SMI) and federal poverty level (FPL)
@@ -30,12 +56,13 @@ The order of operations is:
    - Create boolean for children of more than one race
    - Calculate monthly rate
 1. Load Enrollment data
-1. Extract Capacity data
+
 1. Combine Capacity data with Enrollment data to calculate Utilized Spaces
 1. Load Capacity/Utilization data to DB
-1. Extract Report Revenue data
+
 1. Combine Report and Capacity/Utilization data to get overall revenue numbers
-1. Load Revenue data to DB.   
+1. Load Revenue data to DB.
+
 
 #### sql
 
@@ -96,6 +123,7 @@ The steps of the ETL process are:
 - Accredited and Title I flags for ECIS
 - Does Wraparound in ECIS directly correspond to part time? 
 - What time field should be used for active month? (Enrollment Funding has some 1900 dates)
+- Duplicate enrollments and Fundings are created for the same time for the same child
 
 ## Tests
 

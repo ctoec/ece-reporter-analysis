@@ -1,13 +1,15 @@
 import os
 import numpy as np
 import pandas as pd
-from datetime import datetime
+import sqlalchemy
+from datetime import datetime, timedelta
 from sqlalchemy.sql import text
-from analytic_tables.constants import FULL_TIME, PART_TIME, INFANT_TODDLER, PRESCHOOL, SCHOOL_AGE, ECE_REPORTER
-from resource_access.constants import ECE_DB_SECTION, PENSIEVE_DB_SECTION
-from resource_access.connections import get_mysql_connection
+from analytic_tables.constants import FULL_TIME, PART_TIME, INFANT_TODDLER, PRESCHOOL, SCHOOL_AGE, ECE_REPORTER, PENSIEVE_SCHEMA
+from resource_access.constants import ECE_DB_SECTION, PENSIEVE_DB_SECTION, ENROLLMENTS_FILE, SPACES_FILE, REVENUE_FILE, \
+    S3_ECE_DATA_PATH
+from resource_access.connections import get_mysql_connection, write_df_to_s3, get_s3_files_in_folder, get_s3_subfolders
 from analytic_tables.conversion_functions import validate_and_convert_state, add_income_level, rename_and_drop_cols, \
-    ECE_REGION_MAPPING, add_foster_logic
+    ECE_REGION_MAPPING, add_foster_logic, get_beginning_and_end_of_month
 from analytic_tables.base_tables import MonthlyEnrollmentReporting, MonthlyOrganizationRevenueReporting, \
     MonthlyOrganizationSpaceReporting
 
@@ -18,9 +20,6 @@ REVENUE_QUERY_FILE = ECE_DIR + '/sql/functions/cdc_revenue.sql'
 
 RATES_FILE = ECE_DIR + '/data/Rates.csv'
 
-DATA_DB = get_mysql_connection(ECE_DB_SECTION)
-PENSIEVE_DB = get_mysql_connection(PENSIEVE_DB_SECTION)
-
 AGE_GROUP_MAPPING = {0: INFANT_TODDLER,
                      1: PRESCHOOL,
                      2: SCHOOL_AGE}
@@ -29,68 +28,108 @@ TIME_MAPPING = {0: FULL_TIME,
                 1: PART_TIME}
 
 
-def process_report(report: pd.Series, current_funding: bool = False) -> None:
+def extract_ece_data(report: pd.Series, current_funding: bool = False) -> None:
     """
-    Pulls all data associated with a report. Datasets pulled are enrollments, spaces and revenue. Data is transformed,
-    cleaned and loaded to analytics tables
-    :param report: pandas row with metadata about a Report
-    :param current_funding: whether to use current funding data or historical data
-    :return: None, data is loaded to the DB
+    Pulls ECE data on enrollments, spaces and reports and writes it to S3
+    :param report: Report data from ECE Reporter
+    :param current_funding: whether to use funding data as it exists in the database or data as it existed at report
+    submission, historical is more accurate but will break for months before funding schema change
+    :return: None, files uploaded to S3
     """
-    # Pull raw enrollment data and transform it
-    raw_enrollment_df = get_raw_enrollments(report, current_funding=current_funding)
-    transformed_enrollment_df = transform_enrollment_df(raw_enrollment_df)
+    print(f"Extracting report ID # {report.Id}")
+    data_db = get_mysql_connection(ECE_DB_SECTION)
+    file_prefix = 'submitted/' + str(datetime.strftime(report.SubmittedAt, '%Y-%m-01')) + '/' + str(report.Id)
+    # Pull enrollments and write to S3
+    raw_enrollments = get_raw_enrollments(report, current_funding=current_funding, db=data_db)
+    enrollment_filename = file_prefix + '/' + ENROLLMENTS_FILE
+    write_df_to_s3(df=raw_enrollments, filename=enrollment_filename)
+    print("Uploaded enrollments")
 
+    # Pull spaces and write to S3
+    raw_space = get_raw_spaces(report, db=data_db)
+    spaces_filename = file_prefix + '/' + SPACES_FILE
+    write_df_to_s3(df=raw_space, filename=spaces_filename)
+    print("Uploaded spaces")
+
+    # Pull revenue and write to S3
+    raw_revenue = get_raw_revenue(report, db=data_db)
+    revenue_filename = file_prefix + '/' + REVENUE_FILE
+    write_df_to_s3(df=raw_revenue, filename=revenue_filename)
+    print("Uploaded revenue")
+
+
+def transform_and_load_report(df_dict: dict,  pensieve_db: sqlalchemy.engine.Connection) -> None:
+    """
+    Converts raw pulls from ECE database, transforms them and loads to the DB
+    :param df_dict: dictionary keyed with file names and values of dataframes
+    :param pensieve_db: Connection to Pensieve database
+    :return: None
+    """
+    raw_enrollment_df = df_dict[ENROLLMENTS_FILE]
+
+    # Pull raw enrollment data and transform it
+    transformed_enrollment_df = transform_enrollment_df(raw_enrollment_df)
     # Write enrollment to analytics DB
     transformed_enrollment_df.to_sql(name=MonthlyEnrollmentReporting.__tablename__,
-                                     con=PENSIEVE_DB, if_exists='append', index=False)
+                                     con=pensieve_db, if_exists='append', index=False, schema=PENSIEVE_SCHEMA)
     print("Enrollments loaded")
 
     # Pull raw space data, combine it with enrollments and transform it
-    raw_space_df = get_raw_spaces(report)
+    raw_space_df = df_dict[SPACES_FILE]
     transformed_space_df = transform_space_df(raw_space_df, transformed_enrollment_df)
 
     # Write space capacity and utilization to database
     transformed_space_df.to_sql(name=MonthlyOrganizationSpaceReporting.__tablename__,
-                                con=PENSIEVE_DB, if_exists='append', index=False)
+                                con=pensieve_db, if_exists='append', index=False, schema=PENSIEVE_SCHEMA)
     print("Spaces loaded")
 
     # Pull raw revenue data, combine it with space data and transform
-    raw_revenue_df = get_raw_revenue(report)
+    raw_revenue_df = df_dict[REVENUE_FILE]
     transformed_revenue_df = transform_revenue_df(raw_revenue_df, transformed_space_df)
 
     # Write revenue data to database
     transformed_revenue_df.to_sql(name=MonthlyOrganizationRevenueReporting.__tablename__,
-                                  con=PENSIEVE_DB, if_exists='append', index=False)
+                                  con=pensieve_db, if_exists='append', index=False, schema=PENSIEVE_SCHEMA)
     print("Revenue loaded")
 
 
-def add_new_reports(start_date: datetime.timestamp, end_date: datetime.timestamp, current_funding: bool = False):
+def process_ece_s3_data(submission_month: datetime.date) -> None:
     """
-    Add all new reports since called start date to analytical tables
-    :param start_date: timestamp, reports after this time, inclusive of the start time will be added
-    :param end_date: timestamp, all reports before this time and after start date will be added
-    :param current_funding: whether to use current funding data or historical data
-    :return: None
+    Pulls all data associated with a report. Datasets pulled are enrollments, spaces and revenue. Data is transformed,
+    cleaned and loaded to analytics tables
+    :param submission_month
+    :return: None, data is loaded to the DB
     """
-    report_df = get_reports(start_date, end_date)
-    print(f"Processing {len(report_df)} report(s)")
-    for _, report in report_df.iterrows():
-        print(f"Report ID {report.Id} processing")
-        process_report(report, current_funding)
-        print(f"Report ID {report.Id} done with processing")
+    # Set up Pensieve for loading
+    pensieve_db = get_mysql_connection(PENSIEVE_DB_SECTION)
+
+    # Get report metadata to pull
+    stage = os.environ['STAGE']
+    start_of_month, _ = get_beginning_and_end_of_month(submission_month)
+
+    # Get list of folders associated with each submitted report
+    folder_prefix = f"pensieve/{stage}/{S3_ECE_DATA_PATH}/submitted/{start_of_month.date()}"
+    folder_list = get_s3_subfolders(folder_prefix)
+
+    for folder in folder_list:
+        print(f"Transforming and loading Report #{os.path.basename(folder)}")
+        # Pull files from S3
+        s3_df_dict = get_s3_files_in_folder(folder)
+        transform_and_load_report(df_dict=s3_df_dict, pensieve_db=pensieve_db)
 
 
-def get_raw_enrollments(report: pd.Series, current_funding: bool = False) -> pd.DataFrame:
+def get_raw_enrollments(report: pd.Series, db: sqlalchemy.engine.base.Connection,
+                        current_funding: bool = False) -> pd.DataFrame:
     """
     Call cdc_enrollment.sql script with report metadata (SubmittedAt and Id) to get related Enrollments
     :param report: pandas series associated with a single report, Id and SubmittedAt are included
     :param current_funding: whether to use current funding data or historical data
+    :param db: database connection object
     :return: dataframe with all enrollments associated with a report
     """
     funding_system_time = datetime.now() if current_funding else report.SubmittedAt
     parameters = {'system_time': report.SubmittedAt, 'report_id': report.Id, 'funding_system_time': funding_system_time}
-    df = pd.read_sql(sql=text(open(ENROLLMENT_QUERY_FILE).read()), params=parameters, con=DATA_DB)
+    df = pd.read_sql(sql=text(open(ENROLLMENT_QUERY_FILE).read()), params=parameters, con=db)
 
     return df
 
@@ -101,6 +140,7 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame) -> pd.DataFrame:
     if sum(enrollment_df['Source'] != 0) != 0:
         raise Exception("Non-CDC Source included in data pull")
     # Set all sources ID'd as 0 as CDC
+
     enrollment_df[MonthlyEnrollmentReporting.FundingSource.name] = MonthlyEnrollmentReporting.CDC_SOURCE
     enrollment_df[MonthlyEnrollmentReporting.SourceSystem.name] = ECE_REPORTER
 
@@ -122,6 +162,10 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame) -> pd.DataFrame:
                                                                              1, 0)
     # Calculate monthly rate from number of weeks
     rates_df = pd.read_csv(RATES_FILE)
+
+    date_cols = ['PeriodStart', 'PeriodEnd', 'StartDate', 'EndDate']
+    for col in date_cols:
+        enrollment_df[col] = pd.to_datetime(enrollment_df[col])
     enrollment_df['weeks'] = np.ceil((enrollment_df['PeriodEnd'] - enrollment_df['PeriodStart']) / np.timedelta64(1, 'W'))
     rate_col = enrollment_df.merge(rates_df,
                                    how='left',
@@ -199,15 +243,16 @@ def transform_enrollment_df(enrollment_df: pd.DataFrame) -> pd.DataFrame:
     return enrollment_df
 
 
-def get_raw_spaces(report: pd.Series) -> pd.DataFrame:
+def get_raw_spaces(report: pd.Series, db: sqlalchemy.engine.base.Connection) -> pd.DataFrame:
     """
     Pull space metadata associated with the provided report
     :param report: pandas Series with report metadata
+    :param db: Database connection object
     :return: dataframe with information about spaces associated with report
     """
 
     parameters = {'report_id': report.Id}
-    df = pd.read_sql(sql=text(open(SPACES_QUERY_FILE).read()), params=parameters, con=DATA_DB)
+    df = pd.read_sql(sql=text(open(SPACES_QUERY_FILE).read()), params=parameters, con=db)
     return df
 
 
@@ -255,10 +300,11 @@ def transform_space_df(raw_space_df: pd.DataFrame, transformed_enrollment_df: pd
     return space_df
 
 
-def get_raw_revenue(report: pd.Series) -> pd.DataFrame:
+def get_raw_revenue(report: pd.Series, db: sqlalchemy.engine.base.Connection) -> pd.DataFrame:
     """
     Placeholder function for passing metadata about revenue for a report
     :param report: Pandas series with metadata around a report
+    :param db: database connection for ECE database
     :return: Datafrome containing information on single report
     """
     # Transform series into a dataframe and transpose it
@@ -308,17 +354,37 @@ def transform_revenue_df(raw_revenue_df: pd.DataFrame, transformed_space_df: pd.
     return combined_value_df
 
 
-def get_reports(start_date: datetime.timestamp, end_date: datetime.timestamp) -> pd.DataFrame:
+def get_reports(start_date: datetime.timestamp, end_date: datetime.timestamp, db: sqlalchemy.engine.base.Connection) -> pd.DataFrame:
     """
     Returns dataframe of reports that were submitted since the provided start time and before the provided end time
     :param start_date: First date of reports to pull, pulls all reports since midnight of given date
     :param end_date: Last day of reports by submission date, reports from this date will not be included
+    :param db: database connection for ECE database
     :return: new_reports: Dataframe with each row with the metadata of the report to load
     """
-    query = text("SELECT * FROM Report WHERE SubmittedAt >= :start_date and SubmittedAt < :end_date")
-    new_reports = pd.read_sql(sql=query, params={'start_date': start_date, 'end_date': end_date}, con=DATA_DB)
+    query = text("SELECT Report.*, RP.Period "
+                 "FROM Report "
+                 "INNER JOIN ReportingPeriod RP on Report.ReportingPeriodId = RP.Id "
+                 "WHERE SubmittedAt >= :start_date and SubmittedAt < :end_date")
+    new_reports = pd.read_sql(sql=query, params={'start_date': start_date, 'end_date': end_date}, con=db)
 
     return new_reports
+
+
+def get_month_of_reports(month: datetime.date) -> pd.DataFrame:
+    """
+    Pull all reports that were submitted in the provided month
+    :param month: date within the month to be pulled
+    :return: dataframe with metadata about reports submitted in a month
+    """
+
+    # Get the first and last day of last month
+    month_start, month_end = get_beginning_and_end_of_month(month)
+    data_db = get_mysql_connection(ECE_DB_SECTION)
+
+    # Get all reports submitted last month and write results to S3
+    report_df = get_reports(start_date=month_start, end_date=month_end + timedelta(days=1), db=data_db)
+    return report_df
 
 
 def replace_time_and_age_group_values(df: pd.DataFrame, time_col: str, age_group_col: str) -> pd.DataFrame:

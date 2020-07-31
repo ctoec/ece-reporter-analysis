@@ -7,8 +7,8 @@ services:
     volumes:
       - ./tests:/tests
       - ./src:/src
-      - ./tests/run_tests.sh:/run_tests.sh
       - ./tests/config.ini:/src/resource_access/config.ini
+      - ./tests/run_tests.sh:/run_tests.sh
     entrypoint:
       - /bin/bash
       - run_tests.sh

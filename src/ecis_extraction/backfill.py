@@ -1,10 +1,8 @@
 import pandas as pd
 from ecis_extraction.table_extraction import load_month_of_reports
 
-# Beginning of FY 2014-2015, a chunk of records start here,
-## TODO
-# - validate ideal start time
-START_DATE = '2014-07-01'
+# Beginning of SY 2016-2017, a chunk of records start here
+START_DATE = '2017-02-01'
 # Date of ECIS snapshot
 END_DATE = '2020-02-26'
 

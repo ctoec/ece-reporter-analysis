@@ -23,7 +23,7 @@ jobs:
     - task: DockerCompose@0
       displayName: "Run Docker Compose"
       inputs:
-       dockerComposeFile: "docker-compose.yml"
+       dockerComposeFile: "docker-compose-test.yml"
        dockerComposeCommand: "up --exit-code-from backend"
 
     # Publish results to Azure

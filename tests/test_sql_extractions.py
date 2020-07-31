@@ -24,7 +24,7 @@ class TestSQLExtractionFromDummy(unittest.TestCase):
 	def test_extra_revenue(self):
 
 		# Check that extra revenue from reports is included correctly
-		query = 'select C4KRevenue, FamilyFeesRevenue from MonthlyOrganizationRevenueReporting where ReportId = 2292'
+		query = 'select C4KRevenue, FamilyFeesRevenue from pensieve.MonthlyOrganizationRevenueReporting where ReportId = 2292'
 		c4k_revenue, family_fees = self.conn.execute(query).fetchall()[0]
 		self.assertEqual(float(c4k_revenue), 1234.56)
 		self.assertEqual(float(family_fees), 1000.50)
@@ -34,7 +34,7 @@ class TestSQLExtractionFromDummy(unittest.TestCase):
 		Check that summary tables are filled with expected data for capacity
 		"""
 		# Get capacity numbers from summary tables
-		query = 'select CDCTimeName, CDCAgeGroupName, Capacity from MonthlyOrganizationSpaceReporting where ReportId = 2292'
+		query = 'select CDCTimeName, CDCAgeGroupName, Capacity from pensieve.MonthlyOrganizationSpaceReporting where ReportId = 2292'
 		df = pd.read_sql(sql=query, con=self.conn, index_col=['CDCTimeName', 'CDCAgeGroupName'])
 		lookup_dict = df.to_dict()['Capacity']
 
@@ -48,7 +48,7 @@ class TestSQLExtractionFromDummy(unittest.TestCase):
 	def test_space_utilization(self):
 
 		query = 'select CDCTimeName, CDCAgeGroupName, UtilizedSpaces, UtilizedNonTitle1Spaces, UtilizedTitleISpaces' \
-				' from MonthlyOrganizationSpaceReporting where ReportId = 2292'
+				' from pensieve.MonthlyOrganizationSpaceReporting where ReportId = 2292'
 		df = pd.read_sql(sql=query, con=self.conn, index_col=['CDCTimeName', 'CDCAgeGroupName'])
 		lookup_dict = df.to_dict()
 
@@ -75,31 +75,31 @@ class TestSQLExtractionFromDummy(unittest.TestCase):
 	def test_cdc_revenue(self):
 
 		# Test summation of CDC Revenue
-		query = 'select CDCRevenue From MonthlyOrganizationRevenueReporting'
+		query = 'select CDCRevenue From pensieve.MonthlyOrganizationRevenueReporting'
 		revenue = self.conn.execute(query).fetchall()[0][0]
-		self.assertEqual(float(revenue), 7481.95)
+		self.assertEqual(round(float(revenue), 2), 7481.95)
 
 		# Test that breakdown of revenue is correct
 		query = 'SELECT CDCAgeGroupName,CDCTimeName, Sum(CDCRevenue) AS Revenue ' \
-				'FROM MonthlyEnrollmentReporting ' \
+				'FROM pensieve.MonthlyEnrollmentReporting ' \
 				'where ReportId = 2292 ' \
 				'GROUP BY CDCAgeGroupName, CDCTimeName'
 
 		df = pd.read_sql(sql=query, con=self.conn, index_col=['CDCAgeGroupName', 'CDCTimeName'])
 		lookup_dict = df.to_dict()['Revenue']
 		# Check breakdown of revenue by type
-		self.assertEqual(5205.10, float(lookup_dict[(INFANT, FT)]))
-		self.assertEqual(595.00, float(lookup_dict[(INFANT, PT)]))
-		self.assertEqual(826.60, float(lookup_dict[(PRESCHOOL, FT)]))
-		self.assertEqual(289.25, float(lookup_dict[(PRESCHOOL, PT)]))
-		self.assertEqual(566.00, float(lookup_dict[(SCHOOL_AGE, FT)]))
+		self.assertEqual(5205.10, round(float(lookup_dict[(INFANT, FT)]),2))
+		self.assertEqual(595.00, round(float(lookup_dict[(INFANT, PT)]),2))
+		self.assertEqual(826.60, round(float(lookup_dict[(PRESCHOOL, FT)]),2))
+		self.assertEqual(289.25, round(float(lookup_dict[(PRESCHOOL, PT)]),2))
+		self.assertEqual(566.00, round(float(lookup_dict[(SCHOOL_AGE, FT)]),2))
 
 	def test_count_number_of_families(self):
 
 		query = """
 		SELECT     FamilySize,
         COUNT(DISTINCT(SourceChildId)) AS NumberOfFamilies
-		FROM MonthlyEnrollmentReporting
+		FROM pensieve.MonthlyEnrollmentReporting
 		WHERE Under200FPL = 1
 		GROUP BY FamilySize"""
 
@@ -113,7 +113,7 @@ class TestSQLExtractionFromDummy(unittest.TestCase):
 
 	def test_c4k_certificate(self):
 
-		query = 'select count(*) from MonthlyEnrollmentReporting WHERE ActiveC4K = 1'
+		query = 'select count(*) from pensieve.MonthlyEnrollmentReporting WHERE ActiveC4K = 1'
 		active_c4k_certificates = self.conn.execute(query).fetchall()[0][0]
 		self.assertEqual(active_c4k_certificates, 1)
 
