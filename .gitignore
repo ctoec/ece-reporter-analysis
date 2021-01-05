@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+src/ecis_summer_2020/data/*
 venv/
 .idea/
 .DS_Store
