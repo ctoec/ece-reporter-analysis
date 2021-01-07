@@ -17,7 +17,7 @@ ECE_COLUMNS = ['First name',
                'Birth certificate type',
                'Birth certificate ID #',
                'Town of birth',
-               'State of birth',
+               'State of birth'] + RACE_COLS + [
                'Race not disclosed',
                'Hispanic or Latinx ethnicity',
                'Gender',
@@ -42,12 +42,12 @@ ECE_COLUMNS = ['First name',
                'Funding type',
                'Space type',
                'First funding period',
-               'Last funding period'] + RACE_COLS
+               'Last funding period'] 
 
 COLUMN_MAPPING_ECIS_ECE = {
-    'FirstName': 'First Name',
-    'MiddleName': 'Middle Name',
-    'LastName': 'Last Name',
+    'FirstName': 'First name',
+    'MiddleName': 'Middle name',
+    'LastName': 'Last name',
     'Suffix': 'Suffix',
     'SASID': 'SASID / unique identifier',
     'DateOfBirth': 'Date of birth',
@@ -75,10 +75,22 @@ COLUMN_MAPPING_ECIS_ECE = {
     'FacilityExitDate': 'Enrollment end date',
     'ExitCategory': 'Enrollment exit reason',
     'FundingType': 'Funding type',
-    'SpaceType': 'Space type',
+    'SpaceTypeCode': 'Space type',
     'FundingStartDate': 'First funding period',
     'FundingEndDate': 'Last funding period'
 }
+
+CDC_NAME = 'CDC - Child Day Care'
+CSR_NAME = 'CSR - Competitive School Readiness'
+PSR_NAME = 'PSR - Priority School Readiness'
+SHS_NAME = 'SHS - State Head Start'
+SS_NAME = 'SS - Smart Start'
+
+FUNDING_TYPE = {'Child Day Care': CDC_NAME,
+                'School Readiness – Competitive': CSR_NAME,
+                'School Readiness – Priority': PSR_NAME,
+                'Head Start – State Supplement': SHS_NAME,
+                'Smart Start (SS)': SS_NAME}
 
 EXIT_REASONS = {'Aged Out':'Aged out',
                 'Child Stopped Attending':'Stopped attending',
@@ -89,3 +101,53 @@ EXIT_REASONS = {'Aged Out':'Aged out',
                 'Other':'Unknown',
                 'Parent Withdrew Child':'Stopped attending',
                 'Unknown':'Unknown'}
+
+
+INFANT_TODDLER_ECIS = 'Infant/Toddler'
+PRESCHOOL_ECIS = 'Preschool'
+
+PRESCHOOL_ECE = 'Preschool'
+INFANT_TODDLER_ECE = 'Infant/toddler'
+SCHOOL_AGED_ECE = 'School aged '
+
+
+def get_age_group(funding_and_space_type: str) -> str:
+    """
+    Parses funding type and space type from ECIS extraction to convert to age group in ECE format
+    :param funding_and_space_type: ECIS funding type + '||' + space type
+    :return: Age group
+    """
+    split_list = funding_and_space_type.split('||')
+    funding_type = split_list[0].strip()
+    space_type = split_list[1].strip()
+    pre_school_funding_types = [PSR_NAME, CSR_NAME, SHS_NAME, SS_NAME]
+    if funding_type in pre_school_funding_types:
+        return PRESCHOOL_ECE
+    if INFANT_TODDLER_ECIS in space_type:
+        return INFANT_TODDLER_ECE
+    if PRESCHOOL_ECIS in space_type:
+        return PRESCHOOL_ECE
+
+    raise Exception(f"funding type {funding_type}, Space type {space_type} does not have an age group")
+
+
+# Using data from https://ece-reporter.ctoec.org/funding-space-types assuming keys of funding type and space type
+SPACE_TYPE_LOOKUP = {'PSR - Priority School Readiness || Full Day/Full Year (FD/FY)': 4,
+                     'CSR - Competitive School Readiness || Full Day/Full Year (FD/FY)': 4,
+                     'CSR - Competitive School Readiness || School Day/School Year (SD/SY)': 5,
+                     'CSR - Competitive School Readiness || Part Day/Part Year (PD/PY)': 6,
+                     'PSR - Priority School Readiness || School Day/School Year (SD/SY)': 5,
+                     'CDC - Child Day Care || Preschool Full-Time (PS F/T)': 1,
+                     'CDC - Child Day Care || Infant/Toddler Full-Time (IT F/T)': 1,
+                     'PSR - Priority School Readiness || Part Day/Part Year (PD/PY)': 6,
+                     'SHS - State Head Start || Extended Day': 14,
+                     'PSR - Priority School Readiness || Extended Day (ED)': 7,
+                     'SHS - State Head Start || State Enrollment': 9,
+                     'CDC - Child Day Care || Infant/Toddler Wrap Around (IT WA)': 2,
+                     'CDC - Child Day Care || Preschool Wrap Around (PS WA)': 2,
+                     'SS - Smart Start || School Day/School Year (SD/SY)': 8,
+                     'SHS - State Head Start || Extended Year': 13}
+
+
+
+
