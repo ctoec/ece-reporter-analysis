@@ -42,7 +42,7 @@ ECE_COLUMNS = ['First name',
                'Funding type',
                'Space type',
                'First funding period',
-               'Last funding period'] 
+               'Last funding period']
 
 COLUMN_MAPPING_ECIS_ECE = {
     'FirstName': 'First name',
@@ -68,9 +68,6 @@ COLUMN_MAPPING_ECIS_ECE = {
     'NumberOfPeopleInHousehold': 'Household size',
     'AnnualFamilyIncome': 'Annual household income',
     'DateFamilyIncomeDocumented': 'Determination date',
-    # '': 'Provider',
-    # '': 'Site',
-    # '': 'Age group',
     'FacilityEntryDate': 'Enrollment start date',
     'FacilityExitDate': 'Enrollment end date',
     'ExitCategory': 'Enrollment exit reason',
