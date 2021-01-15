@@ -32,6 +32,7 @@ ECE_COLUMNS = ['First name',
                'Household size',
                'Annual household income',
                'Determination date',
+               'Income not disclosed',
                'Provider',
                'Site',
                'Care model',
@@ -43,6 +44,20 @@ ECE_COLUMNS = ['First name',
                'Space type',
                'First funding period',
                'Last funding period']
+
+OPTIONAL_COLS = ['Birth certificate ID #',
+                'Birth certificate type',
+                'Care model',
+                'Dual language learner',
+                'Experiencing homelessness or housing insecurity',
+                'Income not disclosed',
+                'Lives with foster family',
+                'Middle name',
+                'Receiving disability and/or special education services',
+                'SASID / unique identifier',
+                'State of birth',
+                'Suffix',
+                'Town of birth']
 
 COLUMN_MAPPING_ECIS_ECE = {
     'FirstName': 'First name',

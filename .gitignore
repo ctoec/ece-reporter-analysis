@@ -14,3 +14,6 @@ tests/*.xml
 !tests/config.ini
 !resource_access/config_template.ini
 src/ecis_summer_2020/.ipynb_checkpoints/ecis_to_ece-checkpoint.ipynb
+src/ecis_summer_2020/.ipynb_checkpoints/facility_null_analysis-checkpoint.ipynb
+src/ecis_summer_2020/.ipynb_checkpoints/ecis_to_ece-checkpoint.ipynb
+src/ecis_summer_2020/.ipynb_checkpoints/facility_null_analysis-checkpoint.ipynb
