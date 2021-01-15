@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 
 src/ecis_summer_2020/data/*
+src/ecis_summer_2020/.ipynb_checkpoints/
 venv/
 .idea/
 .DS_Store
@@ -12,3 +13,7 @@ tests/*.xml
 !tests/pytest.ini
 !tests/config.ini
 !resource_access/config_template.ini
+src/ecis_summer_2020/.ipynb_checkpoints/ecis_to_ece-checkpoint.ipynb
+src/ecis_summer_2020/.ipynb_checkpoints/facility_null_analysis-checkpoint.ipynb
+src/ecis_summer_2020/.ipynb_checkpoints/ecis_to_ece-checkpoint.ipynb
+src/ecis_summer_2020/.ipynb_checkpoints/facility_null_analysis-checkpoint.ipynb
