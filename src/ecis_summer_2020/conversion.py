@@ -1,6 +1,8 @@
 ECIS_SUMMER_2020 = 'data/ecis_july_data.csv'
 # This file is a tab separated cut and paste from the password protected file provided by Julie Bisi
 ALL_SITE_FILE = 'data/all_sites.csv'
+ECE_ORGS = 'data/ece_orgs.csv'
+
 
 RACE_COLS = ['Race: American Indian or Alaska Native',
              'Race: Asian',
